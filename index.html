@@ -306,7 +306,6 @@
       <div id="mobile-wrapper">
         <div id="mobile-content">
 
-
         <!-- Navbar / Header -->
         <nav class="bg-gradient-to-r from-slate-900 via-blue-900 to-emerald-900 text-white p-4 shadow-lg sticky top-0 z-50 border-b border-blue-800/50 backdrop-blur-md bg-opacity-90">
             <div class="flex justify-between items-center">
@@ -1550,17 +1549,23 @@
 
         // --- SCROLL TO TOP LOGIC ---
         const scrollBtn = document.getElementById('scrollToTopBtn');
+        const scrollArea = document.getElementById('mobile-content');
         
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
+        // Monitor scroll dalam mobile-content (bukan window)
+        scrollArea.addEventListener('scroll', () => {
+            if (scrollArea.scrollTop > 300) {
                 scrollBtn.classList.add('show');
             } else {
                 scrollBtn.classList.remove('show');
             }
         });
-
+        
+        // Function scroll to top
         function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            scrollArea.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
 
         // --- MEMBERS TABLE & STATS ---
