@@ -25,24 +25,31 @@
             padding: 0;
         } 
         
-        /* Responsive phone wrapper — akan mengecil untuk muat */
-        #mobile-wrapper {
-            width: 100%;
-            max-width: 480px;       /* tidak melebar lebih dari 480px */
-            margin: 16px auto;
-            min-height: 100vh;
-            background-color: #1e293b;
-            box-shadow: 0 0 20px rgba(0,0,0,0.35);
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
+        /* Hybrid — keep 480px visual, scale for small viewports */
+        .phone-mock {
+          width: 480px;
+          height: auto;
+          margin: 32px auto;
+          background-color: #1e293b;
+          box-shadow: 0 0 30px rgba(0,0,0,0.45);
+          border-radius: 16px;
+          overflow: hidden;
+          position: relative;
+          transform-origin: top center;
         }
         
-        /* Jika anda mahu bezel / mock frame effect pada desktop, gunakan media query */
-        @media (min-width: 900px) {
-          #mobile-wrapper {
-            width: 480px;
+        /* Scaling behaviour for narrow viewports */
+        @media (max-width: 520px) {
+          .phone-mock {
+            /* scale so the 480px frame fits within viewport width with 16px padding */
+            transform: scale(calc((100vw - 32px) / 480));
+            margin: 16px auto;
           }
+        }
+        
+        /* small aesthetic tweaks for very tall/short screens */
+        @media (max-height: 600px) {
+          .phone-mock { margin-top: 8px; margin-bottom: 8px; }
         }
         
         /* Glass panel */
@@ -252,7 +259,8 @@
     
     <!-- WRAPPER FOR MOBILE SCREEN RESOLUTION (Restored) -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <div id="mobile-wrapper" class="relative">
+    <div id="mobile-wrapper" class="phone-mock relative">
+      <div class="screen">
 
         <!-- Navbar / Header -->
         <nav class="bg-gradient-to-r from-slate-900 via-blue-900 to-emerald-900 text-white p-4 shadow-lg sticky top-0 z-50 border-b border-blue-800/50 backdrop-blur-md bg-opacity-90">
