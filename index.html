@@ -25,31 +25,37 @@
             padding: 0;
         } 
         
-        /* Hybrid — keep 480px visual, scale for small viewports */
-        .phone-mock {
-          width: 480px;
-          height: auto;
-          margin: 32px auto;
-          background-color: #1e293b;
-          box-shadow: 0 0 30px rgba(0,0,0,0.45);
-          border-radius: 16px;
-          overflow: hidden;
-          position: relative;
-          transform-origin: top center;
+        /* PHONE FRAME – 480px FIXED WIDTH */
+        #mobile-wrapper {
+            width: 480px;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #1e293b;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            border-radius: 16px;
+            overflow: hidden;
+            transform-origin: top center;
         }
         
-        /* Scaling behaviour for narrow viewports */
-        @media (max-width: 520px) {
-          .phone-mock {
-            /* scale so the 480px frame fits within viewport width with 16px padding */
-            transform: scale(calc((100vw - 32px) / 480));
-            margin: 16px auto;
-          }
-        }
+        /* AUTO SCALE untuk mobile */
+        @media (max-width: 480px) {
+            #mobile-wrapper {
+                /* Auto resize ikut lebar skrin */
+                transform: scale(calc(100vw / 480));
+                
+                /* Pastikan wrapper tetap 480px supaya scale tidak rosak */
+                width: 480px;
+                max-width: 480px;
         
-        /* small aesthetic tweaks for very tall/short screens */
-        @media (max-height: 600px) {
-          .phone-mock { margin-top: 8px; margin-bottom: 8px; }
+                /* Buang margin agar tidak ada ruang putih */
+                margin: 0;
+            }
+        
+            /* Pastikan badan tidak boleh scroll kiri-kanan */
+            body {
+                overflow-x: hidden;
+            }
         }
         
         /* Glass panel */
