@@ -128,27 +128,35 @@
         
         /* Scroll To Top Button: Position fixed relative to mobile wrapper */
         #mobile-wrapper #scrollToTopBtn {
-          position: absolute;                 /* relative kepada #mobile-wrapper */
-          right: 20px;                        /* jarak dari tepi frame */
-          bottom: calc(30px + env(safe-area-inset-bottom, 0px)); /* safe area */
+          position: absolute;                 /* relatif kepada #mobile-wrapper */
+          /* Compensate for wrapper scale: visualRight = right * scale, so divide by scale */
+          right: calc(20px / var(--scale, 1)); 
+          bottom: calc((24px + env(safe-area-inset-bottom, 0px)) / var(--scale, 1));
           z-index: 999;
           opacity: 0;
           pointer-events: none;
-          transform-origin: bottom right;     /* supaya pembatalan scale nampak kemas */
-          transition: transform 0.25s ease, opacity 0.25s ease;
-          /* butang tidak akan di-scale oleh transform-skala wrapper (undo scale) */
-          /* NOTE: var(--scale) mesti wujud; jika tidak, set --scale:1 sebagai fallback */
+          transform-origin: bottom right;
+          /* Undo wrapper scale so ikon butang tidak ikut mengecil/membesar */
           transform: scale(calc(1 / var(--scale, 1))) translateY(12px);
+          transition: transform 0.22s ease, opacity 0.22s ease;
+          /* saiz tetap (jika anda mahu) */
+          width: 52px;
+          height: 52px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 999px;
         }
         
-        /* Tunjuk butang */
+        /* Show state */
         #mobile-wrapper #scrollToTopBtn.show {
           opacity: 1;
           pointer-events: auto;
           transform: scale(calc(1 / var(--scale, 1))) translateY(0);
         }
         
-        /* kecilkan kesan 'hover -> translate' utility (Tailwind class gantikan) */
+        /* Hover / pressed tweak (visual only) */
+        #mobile-wrapper #scrollToTopBtn:active,
         #mobile-wrapper #scrollToTopBtn:hover {
           transform: scale(calc(1 / var(--scale, 1))) translateY(-6px);
         }
@@ -1560,21 +1568,16 @@
         const scrollBtn = document.getElementById('scrollToTopBtn');
         const scrollArea = document.getElementById('mobile-content');
         
-        // Monitor scroll dalam mobile-content (bukan window)
-        scrollArea.addEventListener('scroll', () => {
-            if (scrollArea.scrollTop > 300) {
-                scrollBtn.classList.add('show');
-            } else {
-                scrollBtn.classList.remove('show');
-            }
-        });
+        if (scrollArea && scrollBtn) {
+          scrollArea.addEventListener('scroll', () => {
+            if (scrollArea.scrollTop > 300) scrollBtn.classList.add('show');
+            else scrollBtn.classList.remove('show');
+          });
         
-        // Function scroll to top
-        function scrollToTop() {
-            scrollArea.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+          scrollBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            scrollArea.scrollTo({ top: 0, behavior: 'smooth' });
+          });
         }
 
         // --- MEMBERS TABLE & STATS ---
