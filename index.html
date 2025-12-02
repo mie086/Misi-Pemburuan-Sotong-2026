@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -43,7 +42,6 @@
                 transform: scale(calc(100vw / 480)); /* skala layout */
             }
         }
-
         .glass-panel {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -138,24 +136,38 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: transparent;   /* TIADA lagi hitam gelap */
+        
+            /* Latar hitam + blur belakang */
+            background: rgba(0, 0, 0, 0.45);        /* gelap lembut */
+            backdrop-filter: blur(10px);            /* blur belakang */
+            -webkit-backdrop-filter: blur(10px);    /* untuk Safari */
+        
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            backdrop-filter: none;     /* tiada blur */
+        
+            /* Smooth fade-in (optional) */
+            transition: opacity 0.25s ease;
+            opacity: 1;
         }
         
         /* POPUP BOX */
         #popup-warning-box {
-            background: #ffffff;
+            background: rgba(255,255,255,0.88);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        
             width: 90%;
             max-width: 400px;
             padding: 20px 24px;
-            border-radius: 12px;
+            border-radius: 16px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-            font-family: 'Inter', sans-serif;
+        
+            /* Glow lembut */
+            box-shadow: 
+                0 8px 30px rgba(0,0,0,0.35),
+                0 0 0 1px rgba(255,255,255,0.2);
         }
         
         #popup-warning-box h2 {
@@ -863,12 +875,12 @@
                                     
                                     <div class="grid grid-cols-2 gap-2">
                                         <div class="bg-gray-50 p-2 rounded-lg text-center border border-gray-100">
-                                            <span class="block text-[9px] text-gray-400 uppercase">Simpan Bulanan Untuk Capai Target</span>
+                                            <span class="block text-[9px] text-gray-400 uppercase">Bayar Sebulan:</span>
                                             <span id="calcMonthly" class="block text-sm font-bold text-emerald-600">RM 0</span>
                                         </div>
                                         <div class="bg-gray-50 p-2 rounded-lg text-center border border-gray-100">
-                                            <span class="block text-[9px] text-gray-400 uppercase">Simpan Mingguan Untuk Capai Target</span>
-                                            <span id="calcWeekly" class="block text-sm font-bold text-blue-600">RM 0</span>
+                                            <span class="block text-[9px] text-gray-400 uppercase">Bayar Sehari:</span>
+                                            <span id="calcDaily" class="block text-sm font-bold text-blue-600">RM 0</span>
                                         </div>
                                     </div>
                                     
@@ -946,15 +958,6 @@
                                 <h2 class="font-extrabold text-xl leading-snug" id="tableTitle">Tabung Pemburu Sotong</h2>
                                 <p class="text-xs font-medium text-blue-200 uppercase tracking-widest">Senarai Semak Pembayaran</p>
                             </div>
-                             <!-- Admin Controls Integrated -->
-                            <span id="adminBadge" class="hidden bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-200 animate-pulse z-20">ADMIN MODE</span>
-                        </div>
-                        
-                        <!-- Add Member Button (Admin Only) -->
-                        <div class="mt-3 flex justify-end">
-                            <button id="addMemberBtn" onclick="addMember()" class="hidden bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-full hover:bg-emerald-600 shadow-lg shadow-emerald-900/50 transition transform active:scale-95">
-                                <i class="fa-solid fa-plus mr-1"></i> Tambah Ahli
-                            </button>
                         </div>
                     </div>
                     <!-- END NEW THEMED HEADER -->
@@ -1006,7 +1009,6 @@
                                     <th class="p-3 font-semibold text-center">Bayar</th>
                                     <!-- UPDATED: Column Header Changed from Baki to Rekod/Perincian -->
                                     <th class="p-3 font-semibold text-center">Rekod</th> 
-                                    <th class="p-3 font-semibold text-center admin-col hidden">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="memberTableBody" class="divide-y divide-gray-100 bg-white">
@@ -1061,7 +1063,6 @@
                                     <th class="p-3 font-semibold w-24">Tarikh</th>
                                     <th class="p-3 font-semibold">Kategori & Perincian</th>
                                     <th class="p-3 font-semibold text-right w-24">Jumlah (RM)</th>
-                                    <th class="p-3 font-semibold text-center admin-col hidden w-20">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="expensesTableBody" class="divide-y divide-gray-100 bg-white">
@@ -1280,21 +1281,6 @@
         </div>
     </div>
 
-    <!-- MODAL: Admin Login -->
-    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform" id="loginModalContent">
-            <h3 class="font-bold text-lg mb-4 text-gray-800">Admin Login</h3>
-            <p class="text-sm text-gray-500 mb-4">Sila masukkan butiran log masuk.</p>
-            <input type="text" id="adminUsernameInput" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Nama Pengguna">
-            <input type="password" id="adminPasswordInput" class="w-full p-3 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Kata Laluan">
-            <p id="loginError" class="text-red-500 text-xs font-bold hidden mb-4 mt-2">Nama pengguna atau kata laluan salah!</p>
-            <div class="flex justify-end gap-2 mt-4">
-                <button onclick="closeLoginModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">Batal</button>
-                <button onclick="attemptLogin()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium">Masuk</button>
-            </div>
-        </div>
-    </div>
-
     <!-- MODAL: Delete Confirmation -->
     <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
         <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform" id="deleteModalContent">
@@ -1341,7 +1327,7 @@
             { id: 6, name: 'AbgLan', paid: 50, history: [{date: '2025-01-30', amount: 50}] },
             { id: 7, name: 'AbgWan', paid: 500, history: [{date: '2024-11-20', amount: 500}] },
             { id: 8, name: 'Hariz', paid: 100, history: [{date: '2025-02-10', amount: 100}] },
-            { id: 9, name: 'Rusdi', paid: 400, history: [{date: '2025-01-15', amount: 200}, {date: '2025-02-20', amount: 200}] },
+            { id: 9, name: 'Rusdi', paid: 350, history: [{date: '2025-01-15', amount: 150}, {date: '2025-02-20', amount: 200}] },
             { id: 10, name: 'AbgRizal', paid: 90, history: [{date: '2025-01-15', amount: 50}, {date: '2025-02-20', amount: 40}] }
         ];
 
@@ -2007,125 +1993,75 @@
         window.alert = (message) => showStatusModal("Notifikasi", message, "info");
 
 
-        // --- CALCULATOR LOGIC (UPDATED WITH SUGGESTION) ---
-        function calculateSavings() {
-            const currentSavings = parseFloat(document.getElementById('calcCurrentSavings').value) || 0;
-            const paidAmount = parseFloat(document.getElementById('calcPaidAmount').value) || 0; // Ambil nilai yang dah dibayar
-            
-            // Formula Baru: Target - (Duit Tangan + Duit Dah Bayar)
-            const totalAssets = currentSavings + paidAmount;
-            const needed = Math.max(0, TARGET_PER_PERSON - totalAssets);
-            
-            document.getElementById('calcNeeded').innerText = formatCurrency(needed);
-
-            const timeData = getRemainingTime();
-            
-            const suggestionBox = document.getElementById('calcSuggestion');
-            const suggestionText = document.getElementById('calcSuggestionText');
-
-            if (timeData.expired || needed <= 0) {
-                 document.getElementById('calcMonthly').innerText = "RM 0";
-                 document.getElementById('calcWeekly').innerText = "RM 0";
-                 
-                 suggestionBox.classList.add('hidden');
-                 if(needed <= 0) {
-                     suggestionBox.classList.remove('hidden');
-                     suggestionText.innerText = `Mantap! Target bayaran anda (RM ${TARGET_PER_PERSON}) sudah dicapai!`;
-                     suggestionBox.classList.remove('bg-indigo-50');
-                     suggestionBox.classList.add('bg-emerald-50');
-                 }
-                 return;
-            }
-
-            // Using total days for a more accurate calculation
-            const weeksLeft = Math.max(1, Math.ceil(timeData.totalDays / 7));
-            const weeklyPayment = needed / weeksLeft;
-            const monthsLeft = Math.max(1, timeData.displayMonths); // Use display months for cleaner rounding
-            const monthlyPayment = needed / (monthsLeft || 1);
-
-            document.getElementById('calcMonthly').innerText = formatCurrency(monthlyPayment);
-            document.getElementById('calcWeekly').innerText = formatCurrency(weeklyPayment);
-            
-            suggestionBox.classList.remove('hidden');
-            suggestionBox.classList.add('bg-indigo-50'); // Ensure background is correct for saving
-            suggestionText.innerText = `Tips: Simpan RM${Math.ceil(weeklyPayment)} seminggu dari sekarang untuk capai target dalam ${weeksLeft} minggu.`;
+        // Helper: selalu paparkan 2 decimal places
+        function formatCurrencyFixed(amount) {
+          const num = Number.isFinite(amount) ? amount : 0;
+          return 'RM ' + num.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
         }
-
-        // --- ADMIN / MODALS LOGIC ---
         
-        function toggleAdminMode() {
-            if (isAdmin) {
-                // Logout
-                isAdmin = false;
-                sessionStorage.removeItem('isAdmin');
-                document.getElementById('authBtn').innerHTML = '<i class="fa-solid fa-lock"></i> <span class="hidden md:inline">Admin Login</span>';
-                document.getElementById('authBtn').classList.remove('bg-red-600', 'border-red-500');
-                document.getElementById('authBtn').classList.add('bg-blue-800/50', 'border-blue-500/50');
-                document.getElementById('adminBadge').classList.add('hidden');
-                document.getElementById('addMemberBtn').classList.add('hidden');
-                document.getElementById('addExpenseBtn').classList.add('hidden');
-                
-                document.querySelectorAll('.admin-col').forEach(el => el.classList.add('hidden'));
-                
-                // Re-render to hide Admin columns immediately
-                renderTable();
-                renderExpenses();
-                showStatusModal("Log Keluar", "Anda telah log keluar dari Mod Admin.", "info");
-
-            } else {
-                openLoginModal();
+        // Kalkulator utama — menggunakan calcDaily sahaja (tidak lagi calcWeekly)
+        function calculateSavings() {
+          const currentSavings = parseFloat(document.getElementById('calcCurrentSavings').value) || 0;
+          const paidAmount = parseFloat(document.getElementById('calcPaidAmount').value) || 0;
+        
+          const totalAssets = currentSavings + paidAmount;
+          const needed = Math.max(0, Number(TARGET_PER_PERSON) - totalAssets); // pastikan TARGET_PER_PERSON numeric
+        
+          // Papar baki diperlukan dengan 2 dp
+          document.getElementById('calcNeeded').innerText = formatCurrencyFixed(parseFloat(needed.toFixed(2)));
+        
+          const timeData = getRemainingTime();
+          const suggestionBox = document.getElementById('calcSuggestion');
+          const suggestionText = document.getElementById('calcSuggestionText');
+        
+          // Jika expired atau tiada needed
+          if (timeData.expired || needed <= 0) {
+            document.getElementById('calcMonthly').innerText = formatCurrencyFixed(0);
+            // hanya calcDaily wujud sekarang
+            if (document.getElementById('calcDaily')) {
+              document.getElementById('calcDaily').innerText = formatCurrencyFixed(0);
             }
-        }
-
-        function openLoginModal() {
-            const modal = document.getElementById('loginModal');
-            document.getElementById('adminUsernameInput').value = '';
-            document.getElementById('adminPasswordInput').value = '';
-            document.getElementById('loginError').classList.add('hidden');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                document.getElementById('loginModalContent').classList.remove('scale-95');
-                document.getElementById('loginModalContent').classList.add('scale-100');
-                document.getElementById('adminUsernameInput').focus();
-            }, 10);
-        }
-
-        function closeLoginModal() {
-            const modal = document.getElementById('loginModal');
-            document.getElementById('loginModalContent').classList.remove('scale-100');
-            document.getElementById('loginModalContent').classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); }, 150);
-        }
-
-        function attemptLogin() {
-            const user = document.getElementById('adminUsernameInput').value;
-            const pass = document.getElementById('adminPasswordInput').value;
-            
-            // Admin Credentials are hardcoded (as mock data)
-            if (user === 'fahmie' && pass === 'Ummc@1234567890') {
-                enableAdminMode();
-                closeLoginModal();
-                showStatusModal("Log Masuk Berjaya", "Mod Admin diaktifkan. Anda kini boleh mengedit rekod.", "success");
-            } else {
-                document.getElementById('loginError').classList.remove('hidden');
+            suggestionBox.classList.add('hidden');
+        
+            if (needed <= 0) {
+              suggestionBox.classList.remove('hidden');
+              suggestionText.innerText = `Mantap! Target bayaran anda (RM ${formatCurrencyFixed(Number(TARGET_PER_PERSON))}) sudah dicapai!`;
+              suggestionBox.classList.remove('bg-indigo-50');
+              suggestionBox.classList.add('bg-emerald-50');
             }
-        }
-
-        function enableAdminMode() {
-            isAdmin = true;
-            sessionStorage.setItem('isAdmin', 'true');
-            document.getElementById('authBtn').innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Logout';
-            document.getElementById('authBtn').classList.remove('bg-blue-800/50', 'border-blue-500/50');
-            document.getElementById('authBtn').classList.add('bg-red-600', 'border-red-500');
-            document.getElementById('adminBadge').classList.remove('hidden');
-            document.getElementById('addMemberBtn').classList.remove('hidden');
-            document.getElementById('addExpenseBtn').classList.remove('hidden'); 
-            
-            document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
-            
-            // Re-render to show Admin columns immediately
-            renderTable();
-            renderExpenses();
+            return;
+          }
+        
+          // Kiraan harian dan bulanan
+          const daysLeft = Math.max(1, Math.ceil(timeData.totalDays));
+          const rawDaily = needed / daysLeft;
+          const dailyTwo = parseFloat(rawDaily.toFixed(2));   // 2 dp (contoh 1.94)
+          const dailyCeil = Math.ceil(rawDaily);              // bulat ke atas (contoh 2)
+        
+          const monthsLeft = Math.max(1, timeData.displayMonths);
+          const rawMonthly = needed / (monthsLeft || 1);
+          const monthlyTwo = parseFloat(rawMonthly.toFixed(2));
+        
+          // Update UI — hanya calcDaily
+          document.getElementById('calcMonthly').innerText = formatCurrencyFixed(monthlyTwo);
+          if (document.getElementById('calcDaily')) {
+            document.getElementById('calcDaily').innerText = formatCurrencyFixed(dailyTwo);
+          }
+        
+          suggestionBox.classList.remove('hidden');
+          suggestionBox.classList.add('bg-indigo-50');
+        
+          suggestionText.innerText = `Tips: Bayar ${formatCurrencyFixed(dailyTwo)} sehari dari sekarang untuk capai target dalam ${daysLeft} hari.`;
+        
+          // Debug — keluarkan semasa deployment jika tidak diperlukan
+          console.debug('calculateSavings debug:', {
+            currentSavings, paidAmount, totalAssets, needed,
+            daysLeft, rawDaily, dailyTwo, dailyCeil,
+            monthsLeft, rawMonthly, monthlyTwo
+          });
         }
 
         // --- EDIT / ADD / DELETE HELPERS ---
