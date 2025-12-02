@@ -1,0 +1,2244 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misi Pemburuan Sotong</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js untuk graf visual -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #0f172a;
+            /* Background Image: Night Sea Texture */
+            background-image: linear-gradient(rgba(15, 23, 42, 0.8), rgba(6, 78, 59, 0.7)), url('https://images.unsplash.com/photo-1502758775495-9d33a651921a?q=80&w=1920&auto=format&fit=crop');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            /* UPDATED: Allow scrolling in all directions for compact view */
+            overflow: auto; 
+            margin: 0;
+            padding: 0;
+        } 
+        
+        /* Phone Frame (Fixed Layout) */
+        #mobile-wrapper {
+            width: 480px;               /* FIXED width – kekal */
+            max-width: 100%;            /* Allow responsive overflow control */
+            margin: 0 auto;
+            min-height: 100vh;
+            background-color: #1e293b;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        /* REMOVE AUTO SCALE sepenuhnya */
+        /*
+        @media (max-width: 480px) {
+            #mobile-wrapper {
+                transform: scale(calc(100vw / 480));
+            }
+        }
+        */
+        
+        /* Glass panel */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Ocean gradient background */
+        .bg-ocean {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            color: white;
+        }
+        
+        /* Input kecil */
+        .edit-input {
+            width: 80px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        /* New Animation for Squid Icon */
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* Scroll To Top Button: Position fixed relative to mobile wrapper */
+        #scrollToTopBtn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px; /* Aligned to the viewport */
+            z-index: 99;
+            transition: all 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+        }
+        
+        #scrollToTopBtn.show {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+
+        /* Sidebar Transition */
+        #sideMenu {
+            transition: transform 0.3s ease-in-out;
+        }
+        /* Image Slider Styles */
+        .image-slider {
+            width: 100%;
+            height: 250px; /* Saiz standard slider */
+            overflow: hidden;
+            position: relative;
+            border-radius: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+        .slider-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .slider-image.active {
+            opacity: 1;
+        }
+
+        /* Slider Navigation Buttons */
+        .slider-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.3s;
+            backdrop-filter: blur(5px);
+            border-radius: 9999px; /* Fully rounded */
+        }
+        .slider-nav-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: translateY(-50%) scale(1.05);
+        }
+        .slider-nav-btn.left {
+            left: 10px;
+        }
+        .slider-nav-btn.right {
+            right: 10px;
+        }
+        
+        /* FIX: Ensure content inside Top Stat cards is aligned and clean */
+        .stat-content {
+            height: 100%; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        /* Custom class for clickable stat cards */
+        .stat-card-link {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .stat-card-link:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body class="text-gray-800 pb-0">
+
+    <!-- SIDEBAR MENU (Hidden by default) -->
+    <div id="menuOverlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/60 z-[60] hidden backdrop-blur-sm transition-opacity"></div>
+    <div id="sideMenu" class="fixed inset-y-0 left-0 w-64 bg-slate-900/95 backdrop-blur-xl z-[70] transform -translate-x-full border-r border-white/10 shadow-2xl flex flex-col">
+        <!-- Menu Header -->
+        <div class="p-6 border-b border-white/10 flex justify-between items-center bg-slate-800/50">
+            <h2 class="text-emerald-400 font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-bars-staggered"></i> Menu
+            </h2>
+            <button onclick="toggleMenu()" class="text-gray-400 hover:text-white transition w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- Menu Links -->
+        <div class="p-4 flex-1 overflow-y-auto">
+            <ul class="space-y-2">
+                <!-- Utama Link -->
+                <li>
+                    <a href="#" onclick="scrollToTopAndCloseMenu()" class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-indigo-600/20 p-3 rounded-lg transition group">
+                        <span class="bg-indigo-500/10 text-indigo-400 p-2 rounded-md group-hover:bg-indigo-500 group-hover:text-white transition"><i class="fa-solid fa-house w-4 text-center"></i></span>
+                        <span class="font-medium">Utama</span>
+                    </a>
+                </li>
+                
+                <!-- NEW COMBINED LINK: Pengenalan & Misi -->
+                <li>
+                    <a href="#introMissionSection" onclick="toggleMenu()" class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-purple-600/20 p-3 rounded-lg transition group">
+                        <span class="bg-purple-500/10 text-purple-400 p-2 rounded-md group-hover:bg-purple-500 group-hover:text-white transition"><i class="fa-solid fa-compass w-4 text-center"></i></span>
+                        <span class="font-medium">Pengenalan & Misi</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#checklistSection" onclick="toggleMenu()" class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-red-600/20 p-3 rounded-lg transition group">
+                        <span class="bg-indigo-500/10 text-indigo-400 p-2 rounded-md group-hover:bg-indigo-500 group-hover:text-white transition"><i class="fa-solid fa-lightbulb w-4 text-center"></i></span>
+                        <span class="font-medium">Checklist</span>
+                    </a>
+                </li>
+                 <li>
+                    <a href="#tentativeSection" onclick="toggleMenu()" class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-indigo-600/20 p-3 rounded-lg transition group">
+                        <span class="bg-indigo-500/10 text-indigo-400 p-2 rounded-md group-hover:bg-indigo-500 group-hover:text-white transition"><i class="fa-solid fa-map-location-dot w-4 text-center"></i></span>
+                        <span class="font-medium">Tentatif Program</span>
+                    </a>
+                </li>
+                <!-- Updated Menu Link for Finance -->
+                <li>
+                    <a href="#financeSection" onclick="toggleMenu()" class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-teal-600/20 p-3 rounded-lg transition group">
+                        <span class="bg-teal-500/10 text-teal-400 p-2 rounded-md group-hover:bg-teal-500 group-hover:text-white transition"><i class="fa-solid fa-wallet w-4 text-center"></i></span>
+                        <span class="font-medium">Kewangan & Bayaran</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#memberSection" onclick="toggleMenu()" class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-emerald-600/20 p-3 rounded-lg transition group">
+                        <span class="bg-emerald-500/10 text-emerald-400 p-2 rounded-md group-hover:bg-emerald-500 group-hover:text-white transition"><i class="fa-solid fa-users w-4 text-center"></i></span>
+                        <span class="font-medium">Senarai Semak Pembayaran</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#expensesSection" onclick="toggleMenu()" class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-orange-600/20 p-3 rounded-lg transition group">
+                        <span class="bg-orange-500/10 text-orange-400 p-2 rounded-md group-hover:bg-orange-500 group-hover:text-white transition"><i class="fa-solid fa-receipt w-4 text-center"></i></span>
+                        <span class="font-medium">Laporan Dana</span>
+                    </a>
+                </li>
+                 <!-- Updated Menu Link for Gallery -->
+                 <li>
+                    <a href="#gallerySection" onclick="toggleMenu()" class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-pink-600/20 p-3 rounded-lg transition group">
+                        <span class="bg-pink-500/10 text-pink-400 p-2 rounded-md group-hover:bg-pink-500 group-hover:text-white transition"><i class="fa-solid fa-camera-retro w-4 text-center"></i></span>
+                        <span class="font-medium">Galeri Kenangan</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#helpSection" onclick="toggleMenu()" class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-yellow-600/20 p-3 rounded-lg transition group">
+                        <span class="bg-yellow-500/10 text-yellow-400 p-2 rounded-md group-hover:bg-yellow-500 group-hover:text-white transition"><i class="fa-solid fa-circle-question w-4 text-center"></i></span>
+                        <span class="font-medium">Bantuan</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Menu Footer -->
+        <div class="p-4 border-t border-white/10 text-center">
+             <p class="text-xs text-gray-500">Misi Pemburuan Sotong 2026</p>
+        </div>
+    </div>
+    
+    <!-- WRAPPER FOR MOBILE SCREEN RESOLUTION (Restored) -->
+    <div id="mobile-wrapper" class="relative">
+
+        <!-- Navbar / Header -->
+        <nav class="bg-gradient-to-r from-slate-900 via-blue-900 to-emerald-900 text-white p-4 shadow-lg sticky top-0 z-50 border-b border-blue-800/50 backdrop-blur-md bg-opacity-90">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    
+                    <!-- MENU TOGGLE BUTTON -->
+                    <button onclick="toggleMenu()" class="text-white hover:text-emerald-300 transition focus:outline-none bg-white/10 hover:bg-white/20 p-2 rounded-lg backdrop-blur-sm border border-white/10 mr-1">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+
+                    <!-- Squid Icon Box - NOW FUNCTIONS AS SCROLL TO TOP / UTAMA -->
+                    <div ="scrollToTop()" class="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/20 shadow-inner float-animation cursor-pointer ml-3" title="Kembali ke Utama">
+                        <span class="text-3xl filter drop-shadow-md">🦑</span>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight tracking-wide uppercase" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                            Misi <span class="text-emerald-300">Pemburuan Sotong</span>
+                        </h1>
+                        <!-- FIX: Use block container for the two lines of info for better vertical stacking -->
+                        <div class="text-xs text-blue-200 opacity-90 mt-0.5">
+                            <!-- Line 1 -->
+                            <p class="flex items-center gap-1">
+                                <i class="fa-solid fa-water text-[10px]"></i> Laut China Selatan
+                            </p>
+                            <!-- Line 2: Date is now on its own line -->
+                            <p class="flex items-center gap-1">
+                                <i class="fa-solid fa-calendar-days text-[10px]"></i> 1 Mei 2026
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button id="authBtn" onclick="toggleAdminMode()" class="text-sm bg-blue-800/50 hover:bg-blue-700 hover:shadow-md px-4 py-2 rounded-lg transition border border-blue-500/50 flex items-center gap-2 backdrop-blur-sm">
+                        <i class="fa-solid fa-lock text-xs"></i> <span class="hidden md:inline">Admin Login</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="p-4 md:p-6 space-y-6">
+
+            <!-- NEW: Image Slider Section -->
+            <div class="image-slider">
+                <img class="slider-image active" src="images/candat1.jpg" alt="Candat 1">
+                <img class="slider-image" src="images/candat2.jpg" alt="Candat 2">
+                <img class="slider-image" src="images/candat3.jpg" alt="Candat 3">
+                <img class="slider-image" src="images/candat4.jpg" alt="Candat 4">
+                <img class="slider-image" src="images/candat5.jpg" alt="Candat 5">
+
+                <!-- Navigation Buttons -->
+                <button class="slider-nav-btn left" onclick="changeSlide(-1)">
+                    <i class="fa-solid fa-chevron-left text-lg"></i>
+                </button>
+                <button class="slider-nav-btn right" onclick="changeSlide(1)">
+                    <i class="fa-solid fa-chevron-right text-lg"></i>
+                </button>
+            </div>
+            <!-- END NEW: Image Slider Section -->
+
+            <!-- Top Stats Section (Now stacks vertically by default) -->
+            <div class="grid grid-cols-2 gap-4">
+                
+                <!-- Card 1: Countdown - NOW CLICKABLE -->
+                <div class="glass-panel rounded-2xl p-4 shadow-sm border-l-4 border-blue-500 relative overflow-hidden stat-card-link">
+                    <div class="stat-content">
+                        <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-2">
+                            <i class="fa-solid fa-hourglass-half text-6xl text-blue-800"></i>
+                        </div>
+                        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Masa Tinggal</h3>
+                        <!-- FIX: Increased text size and reduced mt-1 to prevent overlap -->
+                        <span id="countdownDisplay" class="text-xl font-bold text-blue-600 leading-tight">0 Bulan 0 Hari</span>
+                        <span id="totalDaysDebug" class="text-[10px] text-gray-400 mt-0.5"></span>
+                        <p class="text-xs text-gray-400">Sehingga 1 Mei 2026</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Total Progress - NOW CLICKABLE -->
+                <div class="glass-panel rounded-2xl p-4 shadow-sm border-l-4 border-emerald-500 relative overflow-hidden stat-card-link" onclick="document.getElementById('memberSection').scrollIntoView({behavior: 'smooth'})">
+                     <div class="stat-content">
+                         <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-2">
+                            <i class="fa-solid fa-sack-dollar text-6xl text-emerald-800"></i>
+                        </div>
+                        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Jumlah Terkumpul</h3>
+                        <!-- FIX: Increased text size -->
+                        <span id="totalCollectedDisplay" class="text-3xl font-bold text-emerald-600 leading-tight">RM 0</span>
+                        
+                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div id="progressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-1 flex justify-between">
+                            <span id="percentDisplay">0%</span>
+                            <span>Sasaran: RM 5,000</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Calculator Teaser / Hab Kewangan - CLICKABLE -->
+                <div class="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-2xl p-4 shadow-md flex flex-col justify-between items-start stat-card-link" onclick="document.getElementById('financeSection').scrollIntoView({behavior: 'smooth'})">
+                    <h3 class="font-bold text-base mb-1 flex items-center gap-2"><i class="fa-solid fa-wallet"></i> Hab Kewangan</h3>
+                    <p class="text-indigo-100 text-xs mb-2">Kira bajet & terus bayar!</p>
+                    <button class="bg-white text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm w-full">
+                        Kira Sekarang
+                    </button>
+                </div>
+
+                <!-- Card 4: Expenses Report Teaser / Laporan Dana - CLICKABLE -->
+                <div class="bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-2xl p-4 shadow-md flex flex-col justify-between items-start stat-card-link" onclick="document.getElementById('expensesSection').scrollIntoView({behavior: 'smooth'})">
+                    <h3 class="font-bold text-base mb-1 flex items-center gap-2"><i class="fa-solid fa-receipt"></i> Laporan Dana</h3>
+                    <p class="text-orange-100 text-xs mb-2">Lihat rekod perbelanjaan terkini.</p>
+                    <button class="bg-white text-orange-600 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm w-full">
+                        Lihat Laporan
+                    </button>
+                </div>
+            </div>
+            
+            <!-- NEW: Shortcut Row for Galeri & Bantuan -->
+            <div class="grid grid-cols-2 gap-4">
+                
+                <!-- NEW Card 5: Galeri Kenangan Shortcut -->
+                <div class="bg-gradient-to-br from-pink-600 to-rose-700 text-white rounded-2xl p-4 shadow-md flex items-center gap-3 stat-card-link" onclick="document.getElementById('gallerySection').scrollIntoView({behavior: 'smooth'})">
+                    <div class="bg-white/20 p-2 rounded-full">
+                        <i class="fa-solid fa-camera-retro text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base">Galeri Kenangan</h3>
+                        <p class="text-pink-100 text-xs">Pautan ke album trip.</p>
+                    </div>
+                </div>
+
+                <!-- NEW Card 6: Pusat Bantuan Shortcut -->
+                <div class="bg-gradient-to-br from-yellow-500 to-orange-500 text-white rounded-2xl p-4 shadow-md flex items-center gap-3 stat-card-link" onclick="document.getElementById('helpSection').scrollIntoView({behavior: 'smooth'})">
+                     <div class="bg-white/20 p-2 rounded-full">
+                        <i class="fa-solid fa-circle-question text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base">Pusat Bantuan</h3>
+                        <p class="text-yellow-100 text-xs">Hubungi Admin Squad.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- END NEW SHORTCUT ROW -->
+
+            <!-- COMBINED SECTION: Pengenalan & Misi (Replaces old #introSection) -->
+            <div id="introMissionSection" class="glass-panel rounded-2xl shadow-lg border-t-4 border-purple-500 relative overflow-hidden scroll-mt-28">
+                <!-- Combined Header -->
+                <div class="bg-gradient-to-r from-purple-900 to-blue-900 p-4 text-white relative overflow-hidden">
+                    <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-4">
+                        <i class="fa-solid fa-compass text-8xl"></i>
+                    </div>
+                    <h2 class="font-bold text-lg flex items-center gap-2 relative z-10">
+                        <i class="fa-solid fa-book-open-reader"></i> Pengenalan & Misi
+                    </h2>
+                    <p class="text-purple-200 text-xs uppercase tracking-wider relative z-10">Info Program & Objektif Trip</p>
+                </div>
+
+                <div class="p-6 flex flex-col gap-6 text-sm leading-relaxed text-gray-700">
+                    
+                    <!-- SECTION 1: Pengenalan -->
+                    <div class="space-y-4 relative">
+                        <!-- Decorative Quote Icon -->
+                        <div class="absolute right-0 top-0 opacity-5 transform translate-x-2 -translate-y-2">
+                            <i class="fa-solid fa-quote-right text-6xl text-purple-900"></i>
+                        </div>
+
+                        <h3 class="font-bold text-gray-800 text-base border-b border-purple-100 pb-2 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-purple-600"></i> Pengenalan
+                        </h3>
+                        
+                        <p class="text-justify">
+                            Al-kisah, maka terbukalah laman rasmi <span class="text-emerald-600 font-bold">Misi Pemburuan Sotong 2026</span>, tanda bermulanya pelayaran besar menuju <span class="text-emerald-600 font-bold">Laut China Selatan</span>. Perjalanan ini bukanlah pengembaraan biasa, melainkan usaha menawan rezeki laut di bawah pimpinan <span class="font-bold text-gray-900">ManRemy</span> dan <span class="font-bold text-gray-900">John</span>.
+                        </p>
+                        <p class="text-justify">
+                            Syahadan, berkumpullah segala ahli armada: <span class="font-bold text-gray-900">CheLan, Mie, AbgRizal, Rusdi, AbgLan, Man, AbgWan dan Hariz</span> bersiap dengan peralatan dan jadual masing-masing.
+                        </p>
+                        <p class="text-justify">
+                            Hatta, dengan kesungguhan itu, harapan menikmati hasil laut segar bukan lagi khabar angin, melainkan tujuan yang semakin hampir. Maka armada ini bertekad sebulat hati untuk <span class="font-bold text-gray-900">penuhkan tong dan pulang sebagai legenda</span>.
+                        </p>
+                    </div>
+
+                    <!-- SECTION 2: Misi & Targets -->
+                    <!-- Removed md:border-l etc., added border-t for separation -->
+                    <div class="space-y-4 pt-4 border-t border-gray-100">
+                         <h3 class="font-bold text-gray-800 text-base border-b border-blue-100 pb-2 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-anchor text-blue-600"></i> Misi & Target
+                        </h3>
+
+                        <!-- Targets List -->
+                        <ul class="space-y-3 mt-3">
+                             <li class="flex items-start gap-3 text-xs text-gray-600">
+                                 <div class="bg-blue-100 p-1.5 rounded-lg text-blue-600 shrink-0">
+                                     <i class="fa-solid fa-weight-hanging text-sm"></i>
+                                 </div>
+                                 <div>
+                                     <span class="font-bold block text-gray-800">50kg Hasil Tangkapan</span>
+                                     Penuhkan tong ikan sampai tak muat.
+                                 </div>
+                             </li>
+                             <li class="flex items-start gap-3 text-xs text-gray-600">
+                                 <div class="bg-purple-100 p-1.5 rounded-lg text-purple-600 shrink-0">
+                                     <i class="fa-solid fa-utensils text-sm"></i>
+                                 </div>
+                                 <div>
+                                     <span class="font-bold block text-gray-800">Tukang Masak Laut</span>
+                                     Masak maggi + sotong segar atas bot. Fuhh!
+                                 </div>
+                             </li>
+                             <!-- NEW TARGET 1 -->
+                             <li class="flex items-start gap-3 text-xs text-gray-600">
+                                 <div class="bg-orange-100 p-1.5 rounded-lg text-orange-600 shrink-0">
+                                     <i class="fa-solid fa-trophy text-sm"></i>
+                                 </div>
+                                 <div>
+                                     <span class="font-bold block text-gray-800">Juara Mega Sotong</span>
+                                     Buruan sotong saiz 'gajah' untuk rekod trip.
+                                 </div>
+                             </li>
+                             <!-- NEW TARGET 2 -->
+                             <li class="flex items-start gap-3 text-xs text-gray-600">
+                                 <div class="bg-emerald-100 p-1.5 rounded-lg text-emerald-600 shrink-0">
+                                     <i class="fa-solid fa-heart-pulse text-sm"></i>
+                                 </div>
+                                 <div>
+                                     <span class="font-bold block text-gray-800">Sifar Mabuk Laut</span>
+                                     Misi kekal cergas mencadat sampai subuh.
+                                 </div>
+                             </li>
+                             <!-- NEW TARGET 3: Ukhuwah -->
+                             <li class="flex items-start gap-3 text-xs text-gray-600">
+                                 <div class="bg-pink-100 p-1.5 rounded-lg text-pink-600 shrink-0">
+                                     <!-- CHANGED ICON from fa-handshake-simple to fa-handshake -->
+                                     <i class="fa-solid fa-handshake text-sm"></i>
+                                 </div>
+                                 <div>
+                                     <span class="font-bold block text-gray-800">Ikatan Ukhuwah</span>
+                                     Eratkan silaturahim, biar rapat macam sotong dalam pukat.
+                                 </div>
+                             </li>
+                         </ul>
+
+                        <!-- Motto -->
+                        <div class="mt-4 pt-2 border-t border-dashed border-gray-200">
+                             <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 text-center">Motto Rasmi</p>
+                             <p class="font-serif text-xs text-center text-slate-800 font-bold italic">"Selagi Tak Dapat, Jangan Mimpi Nak Balik! Biar Rentung Di Laut, Janji Tak Malu Di Darat!"</p>
+                        </div>
+                    </div>
+
+                    <!-- Trivia Tech MOVED here (Bottom of section) -->
+                    <div class="text-xs bg-purple-50 p-3 rounded-lg border border-purple-100 text-purple-800 mt-2">
+                        <i class="fa-solid fa-robot text-purple-500 mr-1"></i> <strong>Trivia Tech:</strong> Laman ini dihasilkan melalui kerjasama sistem <span class="font-bold text-purple-700">Gemini</span> dan <span class="font-bold text-purple-700">ChatGpt</span> bagi memastikan semua urusan pengguna diproses dengan pantas, tepat dan tanpa ralat.
+                    </div>
+                </div>
+            </div>
+            <!-- END COMBINED SECTION -->
+
+            <!-- Main Content Sections (Stacked Vertically for Mobile View) -->
+            <div class="space-y-6">
+                
+                <!-- 1. Checklist Barang -->
+                <!-- Checklist Angler (COMPONENT) -->
+                <div id="checklistSection" class="glass-panel rounded-2xl shadow-sm overflow-hidden border border-gray-100 scroll-mt-28">
+                  <div class="bg-slate-800 p-4 text-white flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <i class="fa-solid fa-clipboard-check text-emerald-400"></i>
+                      <h3 class="font-bold text-sm">Checklist Angler</h3>
+                    </div>
+                
+                    <!-- Reset kecil: Reset ke Default -->
+                    <div class="flex items-center gap-2">
+                      <button id="resetChecklistBtn" class="text-xs bg-gray-100 text-gray-700 px-3 py-1 rounded hover:bg-gray-200" title="Reset checklist ke tetapan asal">
+                        Set Semula
+                      </button>
+                    </div>
+                  </div>
+                
+                  <div class="p-4 bg-white">
+                    <!-- MEMANCING -->
+                    <section class="mb-3">
+                      <header class="cat-header flex items-center justify-between cursor-pointer" role="button" tabindex="0" aria-label="Toggle Memancing" data-target="memancing">
+                        <div class="flex items-center gap-2">
+                          <i class="fa-solid fa-fish text-emerald-500"></i>
+                          <h4 class="font-semibold text-sm">Memancing</h4>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <svg class="cat-arrow w-4 h-4 transform transition-transform" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </div>
+                      </header>
+                
+                      <div class="category-body mt-2 space-y-2 overflow-hidden" data-collapsed="true" style="max-height:0" aria-hidden="true">
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-joran" data-key="joran" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Joran & Mesin <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-candat" data-key="candat" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Candat (spare banyak) <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-towel" data-key="towel" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Towel kecil / kain lap <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-sarung" data-key="sarung" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Sarung tangan nipis <span class="ml-2 text-xs font-medium text-emerald-700 rounded px-1 bg-emerald-50">(pilihan)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-tali" data-key="tali" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Tali braided spare <span class="ml-2 text-xs font-medium text-emerald-700 rounded px-1 bg-emerald-50">(pilihan)</span></span>
+                        </label>
+                      </div>
+                    </section>
+                
+                    <!-- MEMASAK -->
+                    <section class="mb-3">
+                      <header class="cat-header flex items-center justify-between cursor-pointer" role="button" tabindex="0" aria-label="Toggle Memasak" data-target="memasak">
+                        <div class="flex items-center gap-2">
+                          <i class="fa-solid fa-utensils text-amber-500"></i>
+                          <h4 class="font-semibold text-sm">Memasak (Maggi & Sotong)</h4>
+                        </div>
+                        <svg class="cat-arrow w-4 h-4 transform transition-transform" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </header>
+                
+                      <div class="category-body mt-2 space-y-2 overflow-hidden" data-collapsed="true" style="max-height:0" aria-hidden="true">
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-sotong" data-key="sotong" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Sotong segar (untuk masak) <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-periuk" data-key="periuk" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Cawan / Mangkuk (pakai buang) <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-air" data-key="air" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Air mineral untuk memasak <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-maggi" data-key="maggi" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Maggi / mi segera <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-stove" data-key="stove" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Stove portable + gas <span class="ml-2 text-xs font-medium text-emerald-700 rounded px-1 bg-emerald-50">(pilihan)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-periuk" data-key="periuk" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Periuk kecil / pot <span class="ml-2 text-xs font-medium text-emerald-700 rounded px-1 bg-emerald-50">(pilihan)</span></span>
+                        </label>
+                      </div>
+                    </section>
+                
+                    <!-- KESELAMATAN -->
+                    <section class="mb-3">
+                      <header class="cat-header flex items-center justify-between cursor-pointer" role="button" tabindex="0" aria-label="Toggle Keselamatan" data-target="keselamatan">
+                        <div class="flex items-center gap-2">
+                          <i class="fa-solid fa-shield text-blue-500"></i>
+                          <h4 class="font-semibold text-sm">Keselamatan</h4>
+                        </div>
+                        <svg class="cat-arrow w-4 h-4 transform transition-transform" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </header>
+                
+                      <div class="category-body mt-2 space-y-2 overflow-hidden" data-collapsed="true" style="max-height:0" aria-hidden="true">
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-lifejacket" data-key="lifejacket" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Jaket keselamatan / life jacket <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-baju" data-key="baju" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Baju hujan / windbreaker <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-drybag" data-key="drybag" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Dry bag (lindung barang elektronik) <span class="ml-2 text-xs font-medium text-emerald-700 rounded px-1 bg-emerald-50">(pilihan)</span></span>
+                        </label>
+                      </div>
+                    </section>
+                
+                    <!-- PERUBATAN -->
+                    <section class="mb-3">
+                      <header class="cat-header flex items-center justify-between cursor-pointer" role="button" tabindex="0" aria-label="Toggle Perubatan" data-target="perubatan">
+                        <div class="flex items-center gap-2">
+                          <i class="fa-solid fa-kit-medical text-red-500"></i>
+                          <h4 class="font-semibold text-sm">Perubatan</h4>
+                        </div>
+                        <svg class="cat-arrow w-4 h-4 transform transition-transform" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </header>
+                
+                      <div class="category-body mt-2 space-y-2 overflow-hidden" data-collapsed="true" style="max-height:0" aria-hidden="true">
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-ubatmabuk" data-key="ubatmabuk" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Ubat mabuk laut <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-firstaid" data-key="firstaid" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Plaster / kit pertolongan cemas <span class="ml-2 text-xs font-medium text-emerald-700 rounded px-1 bg-emerald-50">(pilihan)</span></span>
+                        </label>
+                      </div>
+                    </section>
+                
+                    <!-- LAIN-LAIN -->
+                    <section>
+                      <header class="cat-header flex items-center justify-between cursor-pointer" role="button" tabindex="0" aria-label="Toggle Lain-lain" data-target="lainlain">
+                        <div class="flex items-center gap-2">
+                          <i class="fa-solid fa-briefcase text-gray-600"></i>
+                          <h4 class="font-semibold text-sm">Lain-lain</h4>
+                        </div>
+                        <svg class="cat-arrow w-4 h-4 transform transition-transform" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </header>
+                
+                      <div class="category-body mt-2 space-y-2 overflow-hidden" data-collapsed="true" style="max-height:0" aria-hidden="true">
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-cooler" data-key="cooler" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Cooler box / kotak ais <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-airminum" data-key="airminum" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Air minuman & snek <span class="ml-2 text-xs font-medium text-white bg-red-500 rounded px-1">(wajib)</span></span>
+                        </label>
+                
+                        <label class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer transition group">
+                          <input id="item-power" data-key="power" type="checkbox" class="check-item w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500" />
+                          <span class="text-sm text-gray-700">Powerbank <span class="ml-2 text-xs font-medium text-emerald-700 rounded px-1 bg-emerald-50">(pilihan)</span></span>
+                        </label>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+                <!-- End Checklist Angler -->
+
+                <!-- 2. Tentatif Program -->
+                <div id="tentativeSection" class="glass-panel rounded-2xl shadow-sm overflow-hidden h-fit border border-gray-100 scroll-mt-28">
+                    <div class="bg-indigo-900 p-4 text-white flex justify-between items-center">
+                        <h3 class="font-bold text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-map-location-dot text-yellow-400"></i> Tentatif Program
+                        </h3>
+                        <span class="text-[10px] text-indigo-200 bg-indigo-800 px-2 py-1 rounded">2H 1M</span>
+                    </div>
+                    <div class="p-4 bg-white relative">
+                        <!-- Timeline Vertical Line -->
+                        <div class="absolute left-8 top-6 bottom-6 w-0.5 bg-gray-100"></div>
+                        
+                        <div class="space-y-6 relative">
+                            <!-- Item 1 -->
+                            <div class="flex gap-4 items-start">
+                                <div class="bg-indigo-100 text-brown-600 w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 border-2 border-white shadow-sm">
+                                    <i class="fa-solid fa-bullhorn text-xs"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-gray-400 block mb-0.5 uppercase tracking-wide">8:00 AM (Hari 1)</span>
+                                    <h4 class="font-bold text-sm text-gray-800">Taklimat Ringkas</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Berkumpul di Tempat yang akan dimaklumkan kelak</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Ucapan aluan dan taklimat ringkas oleh <span class="font-bold text-gray-900">John & ManRemy</span></p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Bacaan Doa</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Sesi Bergambar</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Item 2 -->
+                            <div class="flex gap-4 items-start">
+                                <div class="bg-blue-100 text-blue-600 w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 border-2 border-white shadow-sm">
+                                    <i class="fa-solid fa-car text-xs"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-gray-400 block mb-0.5 uppercase tracking-wide">8:30 AM (Hari 1)</span>
+                                    <h4 class="font-bold text-sm text-gray-800">Bertolak ke Terengganu</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Perjalanan selesa selama 5 jam dari KL ke Terengganu dengan Van VVIP</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Sarapan</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Solat Jamak Zohor & Asar / Jumaat</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Makan Tengahari</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Tiba di Homestay lebih kurang pukul 3.00 PM</p>
+                                </div>
+                            </div>
+
+                            <!-- Item 3 -->
+                            <div class="flex gap-4 items-start">
+                                <div class="bg-emerald-100 text-emerald-600 w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 border-2 border-white shadow-sm">
+                                    <i class="fa-solid fa-ship text-xs"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-gray-400 block mb-0.5 uppercase tracking-wide">8:00 PM (Hari 1)</span>
+                                    <h4 class="font-bold text-sm text-gray-800">Operasi Mencadat!</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Bertolak menuju ke jeti</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Solat Jamak Magrib / Isyak</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Makan ringan sebelum menaik bot</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Bertolak dengan bot ke kawasan perairan Laut China Selatan</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Aktiviti bebas (Mencadat Sotong / Memancing)</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Item 4 -->
+                            <div class="flex gap-4 items-start">
+                                <div class="bg-orange-100 text-orange-600 w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 border-2 border-white shadow-sm">
+                                    <i class="fa-solid fa-person-walking text-xs"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold text-gray-400 block mb-0.5 uppercase tracking-wide">4:00 AM (Hari 2)</span>
+                                    <h4 class="font-bold text-sm text-gray-800">Bersurai</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Bertolak pulang ke jeti</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Solat Subuh</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Sarapan</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Singgah membeli keropok sebelum pulang</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Bertolak pulang ke KL</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Tiba di KL sebelum asar</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">: Bersurai</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+  
+                <!-- 3. Finance Hub (Calculator + Payment MERGED) -->
+                <div id="financeSection" class="glass-panel rounded-2xl shadow-sm overflow-hidden scroll-mt-28 border border-teal-200">
+                    <div class="bg-gradient-to-r from-teal-800 to-emerald-900 p-4 relative overflow-hidden text-white">
+                         <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2">
+                             <i class="fa-solid fa-wallet text-8xl"></i>
+                        </div>
+                        <h2 class="font-bold text-lg mb-1 flex items-center gap-2 relative z-10">
+                            <i class="fa-solid fa-money-bill-transfer"></i> Pusat Kewangan
+                        </h2>
+                        <p class="text-teal-200 text-xs uppercase tracking-wider relative z-10">Kira Bajet & Terus Bayar</p>
+                    </div>
+
+                    <div class="p-4 bg-white">
+                        <!-- Desktop Grid / Mobile Stack -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:divide-x md:divide-gray-100">
+                            
+                            <!-- LEFT COLUMN: CALCULATOR -->
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <h3 class="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
+                                        <i class="fa-solid fa-calculator text-indigo-500"></i> Kalkulator Simpanan
+                                    </h3>
+                                    <p class="text-xs text-gray-500 mb-3 leading-relaxed">
+                                        Masukkan duit dalam tangan dan duit telah dibayar, sistem akan mengira baki secara automatik baki yang perlu dibayar.
+                                    </p>
+                                    
+                                    <!-- INPUT 1: Duit Dalam Tangan -->
+                                    <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 mb-2">
+                                        <label class="block text-[10px] font-bold text-indigo-800 uppercase mb-1">Duit Dalam Tangan (RM)</label>
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-2.5 text-gray-400 font-bold text-sm">RM</span>
+                                            <input type="number" id="calcCurrentSavings" placeholder="Contoh: 50" class="w-full pl-10 p-2 text-sm border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition font-bold text-gray-700" oninput="calculateSavings()">
+                                        </div>
+                                    </div>
+
+                                    <!-- INPUT 2: Duit Telah Dibayar (NEW) -->
+                                    <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-100 mb-3">
+                                        <label class="block text-[10px] font-bold text-indigo-800 uppercase mb-1">Duit Telah Dibayar (RM)</label>
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-2.5 text-gray-400 font-bold text-sm">RM</span>
+                                            <input type="number" id="calcPaidAmount" placeholder="Contoh: 100" class="w-full pl-10 p-2 text-sm border border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none transition font-bold text-gray-700" oninput="calculateSavings()">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center mb-2 border-b border-dashed border-gray-200 pb-2">
+                                        <span class="text-xs text-gray-500">Baki Diperlukan:</span>
+                                        <span id="calcNeeded" class="font-bold text-lg text-indigo-700">RM 500</span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="bg-gray-50 p-2 rounded-lg text-center border border-gray-100">
+                                            <span class="block text-[9px] text-gray-400 uppercase">Simpan Bulanan Untuk Capai Target</span>
+                                            <span id="calcMonthly" class="block text-sm font-bold text-emerald-600">RM 0</span>
+                                        </div>
+                                        <div class="bg-gray-50 p-2 rounded-lg text-center border border-gray-100">
+                                            <span class="block text-[9px] text-gray-400 uppercase">Simpan Mingguan Untuk Capai Target</span>
+                                            <span id="calcWeekly" class="block text-sm font-bold text-blue-600">RM 0</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="calcSuggestion" class="mt-3 text-[10px] text-indigo-800 bg-indigo-50 p-2 rounded-lg text-center hidden border border-indigo-100">
+                                        <i class="fa-solid fa-lightbulb text-yellow-500 mr-1"></i> <span id="calcSuggestionText"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RIGHT COLUMN: PAYMENT (Mobile: Separator Line Added via CSS) -->
+                            <div class="flex flex-col items-center text-center pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
+                                <h3 class="font-bold text-sm text-gray-700 mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-qrcode text-teal-600"></i> Imbas & Bayar
+                                </h3>
+                                <p class="text-xs text-gray-500 mb-4">
+                                    Dah cukup duit? Terus Imbas disini.
+                                </p>
+                                
+                            <!-- Maintenance Placeholder -->
+                            <div class="bg-white p-2 rounded-xl border-2 border-dashed border-teal-300 mb-3 w-32 h-32 
+                                        flex items-center justify-center relative overflow-hidden shadow-sm">
+                            
+                                <div class="text-center px-1 leading-tight">
+                                    
+                                    <!-- Warning Icon -->
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg mb-1"></i>
+                            
+                                    <!-- Message -->
+                                    <p class="text-[10px] text-gray-700 font-medium">
+                                        <span class="font-bold text-amber-600">Under Maintenance</span><br>
+                                        Sila rujuk pada grup WhatsApp<br>
+                                        atau hubungi <span class="font-bold">Hariz</span><br>
+                                        bagi proses pembayaran.
+                                    </p>
+                                </div>
+                            
+                            </div>
+
+                                <div class="bg-gray-50 rounded-lg p-2 w-full max-w-[200px] mb-3 border border-gray-100">
+                                    <p class="text-[10px] text-gray-400 uppercase">Scan QR</p>
+                                    <p class="text-xs font-bold text-gray-800">CIMB (Hariz)</p>
+                                </div>
+
+                                <!-- Important Note (Compact) -->
+                                <div class="flex gap-2 items-start text-left bg-yellow-50 p-2 rounded-lg border border-yellow-100 w-full">
+                                    <i class="fa-solid fa-circle-exclamation text-yellow-500 text-xs mt-0.5"></i>
+                                
+                                    <!-- Flex untuk ayat + butang -->
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-[10px] text-yellow-800 leading-tight">
+                                            <strong>Terima kasih</strong> atas pembayaran anda. Proses pengemaskinian mengambil masa 4–5 minit sebelum status anda dipaparkan pada jadual dan sejarah pembayaran. 
+                                        </p>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Participant Table -->
+                <!-- Added ID for anchor scrolling -->
+                <div id="memberSection" class="glass-panel rounded-2xl shadow-sm overflow-hidden h-fit scroll-mt-28">
+                    <!-- NEW THEMED HEADER FOR MEMBER SECTION -->
+                    <div class="bg-gradient-to-r from-blue-900 to-slate-900 p-4 relative overflow-hidden text-white border-b border-white/20">
+                        <!-- Watermark Icon -->
+                        <div class="absolute right-3 top-3 opacity-20 transform scale-150 rotate-12">
+                            <i class="fa-solid fa-users text-5xl"></i>
+                        </div>
+                        
+                        <!-- Title and Subtitle -->
+                        <div class="flex justify-between items-center relative z-10">
+                            <div class="flex flex-col">
+                                <h2 class="font-extrabold text-xl leading-snug" id="tableTitle">Tabung Pemburu Sotong</h2>
+                                <p class="text-xs font-medium text-blue-200 uppercase tracking-widest">Senarai Semak Pembayaran</p>
+                            </div>
+                             <!-- Admin Controls Integrated -->
+                            <span id="adminBadge" class="hidden bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-200 animate-pulse z-20">ADMIN MODE</span>
+                        </div>
+                        
+                        <!-- Add Member Button (Admin Only) -->
+                        <div class="mt-3 flex justify-end">
+                            <button id="addMemberBtn" onclick="addMember()" class="hidden bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-full hover:bg-emerald-600 shadow-lg shadow-emerald-900/50 transition transform active:scale-95">
+                                <i class="fa-solid fa-plus mr-1"></i> Tambah Ahli
+                            </button>
+                        </div>
+                    </div>
+                    <!-- END NEW THEMED HEADER -->
+
+                    <!-- SUMMARY CARD — WHITE THEME -->
+                    <div class="bg-white p-4 pb-6 -mt-1">
+                        <div class="bg-white rounded-xl p-4 border border-gray-100">
+                    
+                            <!-- Top Section: Amount & Target -->
+                            <div class="flex justify-between items-end mb-2">
+                                <div>
+                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">
+                                        Jumlah Terkumpul
+                                    </p>
+                                    <h3 class="text-3xl font-bold text-emerald-600 leading-tight" id="tableSummaryCollected">
+                                        RM 0
+                                    </h3>
+                                </div>
+                    
+                                <div class="text-right">
+                                    <p class="text-[10px] text-gray-400">Sasaran</p>
+                                    <p class="text-sm font-bold text-gray-700" id="tableSummaryTarget">
+                                        RM 5,000
+                                    </p>
+                                </div>
+                            </div>
+                    
+                            <!-- Pill Progress Bar -->
+                            <div class="w-full bg-gray-100 rounded-full h-2 mb-2">
+                                <div id="tableSummaryProgress" class="bg-emerald-500 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                    
+                            <!-- Percent Display -->
+                            <p class="text-[11px] text-gray-500 mt-2" id="tableSummaryPercent">
+                                0% Dicapai
+                            </p>
+                    
+                        </div>
+                    </div>
+
+                    <!-- END NEW SUMMARY CARD -->
+                    
+                    <div class="overflow-x-auto max-h-[600px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="sticky top-0 bg-gray-50 shadow-sm z-10">
+                                <tr class="text-gray-500 text-[10px] uppercase">
+                                    <th class="p-3 font-semibold">Nama</th>
+                                    <th class="p-3 font-semibold text-center">Prog.</th>
+                                    <th class="p-3 font-semibold text-center">Bayar</th>
+                                    <!-- UPDATED: Column Header Changed from Baki to Rekod/Perincian -->
+                                    <th class="p-3 font-semibold text-center">Rekod</th> 
+                                    <th class="p-3 font-semibold text-center admin-col hidden">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="memberTableBody" class="divide-y divide-gray-100 bg-white">
+                                <!-- Rows injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 5. EXPENSES / FUND USAGE SECTION (Renumbered) -->
+                <div id="expensesSection" class="glass-panel rounded-2xl shadow-sm overflow-hidden h-fit scroll-mt-28 mt-6">
+                    <div class="bg-gradient-to-r from-yellow-800 to-yellow-900 p-4 relative overflow-hidden text-white">
+                        <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2">
+                             <i class="fa-solid fa-chart-line text-8xl"></i>
+                        </div>
+                        <h2 class="font-bold text-lg mb-1 flex items-center gap-2 relative z-10">
+                            <i class="fa-solid fa-receipt"></i> Laporan Penggunaan Dana
+                        </h2>
+                        <p class="text-yellow-200 text-xs uppercase tracking-wider relative z-10">Rekod ke mana duit tabung dibelanjakan.</p>
+                    </div>
+                    
+                    <div class="p-8 bg-gray-50 relative">
+                        
+                        <!-- Financial Summary Badge -->
+                        <div class="flex gap-2 text-xs bg-gray-50 p-2 rounded-lg border border-gray-100 w-full justify-around">
+                            <div class="text-center px-1">
+                                <div class="text-[10px] text-gray-400 uppercase">Terkumpul</div>
+                                <div class="font-bold text-emerald-600" id="summaryCollected">RM 0</div>
+                            </div>
+                            <div class="w-px bg-gray-300"></div>
+                            <div class="text-center px-1">
+                                <div class="text-[10px] text-gray-400 uppercase">Belanja</div>
+                                <div class="font-bold text-red-500" id="summaryExpenses">RM 0</div>
+                            </div>
+                            <div class="w-px bg-gray-300"></div>
+                            <div class="text-center px-1">
+                                <div class="text-[10px] text-gray-400 uppercase">Baki Bersih</div>
+                                <div class="font-bold text-blue-600" id="summaryNetBalance">RM 0</div>
+                            </div>
+                        </div>
+
+                        <button id="addExpenseBtn" onclick="openExpenseModal()" class="hidden bg-orange-500 text-white text-sm px-3 py-1.5 rounded hover:bg-orange-600 shadow-sm transition transform active:scale-95 w-full mt-2">
+                            <i class="fa-solid fa-plus mr-1"></i> Tambah Belanja
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <!-- UPDATED: Removed separate 'Perincian' header, merged into 'Kategori' -->
+                            <thead class="bg-orange-50 text-orange-800 text-[10px] uppercase">
+                                <tr>
+                                    <th class="p-3 font-semibold w-24">Tarikh</th>
+                                    <th class="p-3 font-semibold">Kategori & Perincian</th>
+                                    <th class="p-3 font-semibold text-right w-24">Jumlah (RM)</th>
+                                    <th class="p-3 font-semibold text-center admin-col hidden w-20">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTableBody" class="divide-y divide-gray-100 bg-white">
+                                <!-- Expenses injected via JS -->
+                            </tbody>
+                        </table>
+                        <div id="noExpensesMsg" class="p-6 text-center text-gray-400 hidden text-sm">
+                            Tiada rekod perbelanjaan lagi.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Gallery Section (MOVED DOWN) -->
+                <div id="gallerySection" class="glass-panel rounded-2xl shadow-sm overflow-hidden h-fit border border-pink-200 scroll-mt-28 mt-6">
+                    <div class="bg-gradient-to-r from-pink-800 to-rose-900 p-4 relative overflow-hidden text-white">
+                        <div class="absolute right-0 top-0 opacity-10 transform translate-x-2 -translate-y-2">
+                             <i class="fa-solid fa-images text-8xl"></i>
+                        </div>
+                        <h2 class="font-bold text-lg mb-1 flex items-center gap-2 relative z-10">
+                            <i class="fa-solid fa-camera-retro"></i> Galeri Kenangan
+                        </h2>
+                        <p class="text-pink-200 text-xs uppercase tracking-wider relative z-10">Koleksi Gambar & Video Trip</p>
+                    </div>
+                    
+                    <div class="p-8 bg-gray-50 flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[200px]">
+                        
+                         <!-- Maintenance Graphic -->
+                        <div class="bg-white p-4 rounded-full shadow-lg mb-4 relative z-10 animate-bounce border-4 border-pink-100">
+                            <i class="fa-solid fa-person-digging text-4xl text-pink-500"></i>
+                        </div>
+
+                        <h3 class="font-bold text-gray-800 text-base mb-2 relative z-10">Under Maintenance</h3>
+                        <!-- UPDATED TEXT -->
+                        <p class="text-sm text-gray-500 max-w-xs leading-relaxed relative z-10">
+                            Sila Berhubung atau Berjumpa dengan Admin Squad!. Terima Kasih.
+                        </p>
+                        
+                        <div class="mt-6 px-4 py-1.5 bg-gray-200 rounded-full text-xs font-mono text-gray-600 relative z-10 border border-gray-300">
+                            Status: Coming Soon...
+                        </div>
+
+                        <!-- Background decoration -->
+                        <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#db2777 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    </div>
+                </div>
+
+                <!-- 7. Help / Enquiries Section (Renumbered) -->
+                <div id="helpSection" class="glass-panel rounded-2xl shadow-sm overflow-hidden mt-6 scroll-mt-24 border-l-4 border-yellow-400">
+                    <div class="p-4 bg-yellow-50 border-b border-yellow-100">
+                        <h2 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-question text-yellow-500"></i> Pusat Bantuan
+                        </h2>
+                        <p class="text-xs text-gray-600 mt-1">
+                            "Jika ada sebarang kekeliruan dalam program, sila hubungi atau berjumpa Admin Squad untuk bantuan segera."
+                        </p>
+                    </div>
+                    
+                    <div class="p-4 bg-white">
+                        <p class="text-xs text-gray-600 mb-4 text-justify leading-relaxed">
+                            Adapun sekiranya timbul apa jua kesukaran sama ada kekurangan belanja, tidak diketahui hendak menumpang kereta siapa, ataupun ingin memohon lagu tatkala kita berkaraoke di atas perahu kelak, maka janganlah pemburu sekalian malu atau segan. Syahadan, rogerlah segera kedua <strong>"Iron Man"</strong> kita itu kerana merekalah yang sudi berkhidmat demi kelancaran segala urusan misi sotong ini.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Manager 1: John (Updated to ADMIN SQUAD) -->
+                            <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:shadow-md transition bg-gradient-to-br from-blue-50 to-white">
+                                <div class="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xl border-2 border-white shadow-sm">
+                                    J
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-sm text-gray-800">John</h4>
+                                    <!-- UPDATED: Gelaran ringkas -->
+                                    <span class="text-[10px] text-blue-600 font-medium uppercase tracking-wide bg-blue-100 px-1.5 py-0.5 rounded">ADMIN SQUAD</span>
+                                    <div class="flex flex-col gap-2 mt-2">
+                                        <button ="alert('Mendail John...')" class="w-full text-xs bg-green-500 text-white px-2 py-1.5 rounded hover:bg-green-600 transition flex items-center justify-center gap-2">
+                                            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                                        </button>
+                                        <button ="alert('Mendail John...')" class="w-full text-xs bg-blue-500 text-white px-2 py-1.5 rounded hover:bg-blue-600 transition flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-phone"></i> Call
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Manager 2: ManRemy (Updated to ADMIN SQUAD) -->
+                            <div class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:shadow-md transition bg-gradient-to-br from-purple-50 to-white">
+                                <div class="w-12 h-12 rounded-full bg-purple-200 flex items-center justify-center text-purple-700 font-bold text-xl border-2 border-white shadow-sm">
+                                    M
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-sm text-gray-800">ManRemy</h4>
+                                    <!-- UPDATED: Gelaran ringkas -->
+                                    <span class="text-[10px] text-purple-600 font-medium uppercase tracking-wide bg-purple-100 px-1.5 py-0.5 rounded">ADMIN SQUAD</span>
+                                    <div class="flex flex-col gap-2 mt-2">
+                                        <button ="alert('Mendail ManRemy...')" class="w-full text-xs bg-green-500 text-white px-2 py-1.5 rounded hover:bg-green-600 transition flex items-center justify-center gap-2">
+                                            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                                        </button>
+                                        <button ="alert('Mendail ManRemy...')" class="w-full text-xs bg-blue-500 text-white px-2 py-1.5 rounded hover:bg-blue-600 transition flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-phone"></i> Call
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
+                            <p class="text-[10px] text-gray-400 italic">
+                                *Adapun nombor talian mereka itu telah pun termaktub dalam kumpulan WhatsApp kita!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div> <!-- END OF MOBILE WRAPPER -->
+
+    <!-- SCROLL TO TOP BUTTON -->
+    <button id="scrollToTopBtn" onclick="scrollToTop()" class="bg-blue-600 text-white p-3 rounded-full shadow-lg flex items-center justify-center backdrop-blur-sm border border-blue-400/30 hover:bg-blue-500 hover:-translate-y-1">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- NEW MODAL: Payment Details -->
+    <div id="detailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform" id="detailsModalContent">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800" id="detailMemberName">Nama Ahli</h3>
+                    <p class="text-xs text-gray-500">Sejarah pembayaran.</p>
+                </div>
+                <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-3 max-h-60 overflow-y-auto mb-4 border border-gray-100">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="text-gray-500 border-b border-gray-200">
+                            <th class="pb-2">Tarikh</th>
+                            <th class="pb-2 text-right">Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailsTableBody" class="text-gray-700">
+                        <!-- Content Injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="flex justify-between items-center bg-blue-50 p-3 rounded-lg border border-blue-100">
+                <span class="text-xs font-bold text-blue-800">Jumlah Keseluruhan:</span>
+                <span id="detailTotal" class="text-sm font-bold text-blue-600">RM 0</span>
+            </div>
+            
+            <!-- ---- INSERTED IMPORTANT NOTE (YELLOW) ---- -->
+            <div class="flex gap-2 items-start text-left bg-yellow-50 p-2 rounded-lg border border-yellow-100 w-full mt-3">
+              <i class="fa-solid fa-circle-exclamation text-yellow-500 text-xs mt-0.5"></i>
+        
+              <!-- Flex untuk ayat + butang (butang boleh dibuang jika tidak perlu) -->
+              <div class="flex items-center gap-2">
+                <p class="text-[10px] text-yellow-800 leading-tight">
+                  Sila <strong>MAKLUMKAN!</strong> kepada Admin Squad jika terdapat sebarang kesilapan dan <strong>TUNGGU!</strong> 4-5 minit untuk Admin Squad mengemaskini pada sejarah pembayaran.
+                </p>
+              </div>
+            </div>
+            <!-- ---- end inserted note ---- -->
+            
+            <div class="flex justify-center mt-4">
+                 <button onclick="closeDetailsModal()" class="px-6 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 font-medium text-xs">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Edit Member Data -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform" id="modalContent">
+            <h3 class="font-bold text-lg mb-4 text-gray-800">Kemaskini Data Ahli</h3>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Ahli</label>
+            <input type="text" id="modalMemberNameInput" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-emerald-500 outline-none">
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Jumlah Bayaran (RM)</label>
+            <input type="number" id="modalAmount" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-emerald-500 outline-none">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">Batal</button>
+                <button onclick="saveMemberData()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add/Edit Expense (UPDATED: Simplified) -->
+    <div id="expenseModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform" id="expenseModalContent">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-gray-800" id="expenseModalTitle">Rekod Perbelanjaan</h3>
+                <button onclick="closeExpenseModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Kategori</label>
+            <select id="expCategory" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-orange-500 outline-none bg-white">
+                <option value="Pengangkutan">Pengangkutan</option>
+                <option value="Makan & Minum">Makan & Minum</option>
+                <option value="Sewa Boat">Sewa Boat</option>
+                <option value="Homestay">Homestay</option>
+                <option value="Lain-lain">Lain-lain</option>
+            </select>
+
+            <!-- REMOVED: Subtype container -->
+
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Perincian</label>
+            <input type="text" id="expDesc" placeholder="Contoh: Deposit Van" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-orange-500 outline-none">
+
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Jumlah (RM)</label>
+            <input type="number" id="expAmount" class="w-full p-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-orange-500 outline-none">
+
+            <div class="flex justify-end gap-2">
+                <button onclick="closeExpenseModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">Batal</button>
+                <button onclick="saveExpense()" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-medium">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Admin Login -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform" id="loginModalContent">
+            <h3 class="font-bold text-lg mb-4 text-gray-800">Admin Login</h3>
+            <p class="text-sm text-gray-500 mb-4">Sila masukkan butiran log masuk.</p>
+            <input type="text" id="adminUsernameInput" class="w-full p-3 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Nama Pengguna">
+            <input type="password" id="adminPasswordInput" class="w-full p-3 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Kata Laluan">
+            <p id="loginError" class="text-red-500 text-xs font-bold hidden mb-4 mt-2">Nama pengguna atau kata laluan salah!</p>
+            <div class="flex justify-end gap-2 mt-4">
+                <button onclick="closeLoginModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">Batal</button>
+                <button onclick="attemptLogin()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-medium">Masuk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Delete Confirmation -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl transform scale-95 transition-transform" id="deleteModalContent">
+            <div class="text-center mb-4">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <i class="fa-solid fa-triangle-exclamation text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Padam Rekod?</h3>
+                <p class="text-sm text-gray-500 mt-2">Adakah anda pasti mahu memadam rekod <span id="deleteItemName" class="font-bold text-gray-800"></span>? Tindakan ini tidak boleh dikembalikan.</p>
+            </div>
+            <div class="flex justify-center gap-3 mt-6">
+                <button onclick="closeDeleteModal()" class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition">Batal</button>
+                <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium shadow-md transition">Ya, Padam</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        // --- CONFIGURATION ---
+        const TARGET_PER_PERSON = 500;
+        const DEADLINE = new Date('2026-05-01');
+        let isAdmin = false;
+        
+        // Image slider data (Sample images related to squid fishing)
+        const sliderImages = [
+            { url: "images/candat1.jpg", alt: "Candat 1" },
+            { url: "images/candat2.jpg", alt: "Candat 2" },
+            { url: "images/candat3.jpg", alt: "Candat 3" },
+            { url: "images/candat4.jpg", alt: "Candat 4" },
+            { url: "images/candat5.jpg", alt: "Candat 5" }
+        ];
+        let currentImageIndex = 0;
+        let slideInterval; // Variable untuk menampung interval automatik
+
+
+        // --- MOCK DATA (UPDATED WITH HISTORY PROPERTY) ---
+        // Peringatan: Data ini adalah 'mock data'.
+        // Added 'history' array to simulate payment details.
+        let members = [
+            { id: 1, name: 'Mie', paid: 500, history: [{date: '2025-01-10', amount: 200}, {date: '2025-02-15', amount: 300}] },
+            { id: 2, name: 'John', paid: 150, history: [{date: '2025-01-20', amount: 150}] },
+            { id: 3, name: 'ManRemy', paid: 100, history: [{date: '2025-02-10', amount: 100}] },
+            { id: 4, name: 'Man', paid: 250, history: [{date: '2025-01-05', amount: 100}, {date: '2025-02-01', amount: 150}] },
+            { id: 5, name: 'CheLan', paid: 450, history: [{date: '2024-12-12', amount: 450}] },
+            { id: 6, name: 'AbgLan', paid: 50, history: [{date: '2025-01-30', amount: 50}] },
+            { id: 7, name: 'AbgWan', paid: 500, history: [{date: '2024-11-20', amount: 500}] },
+            { id: 8, name: 'Hariz', paid: 100, history: [{date: '2025-02-10', amount: 100}] },
+            { id: 9, name: 'Rusdi', paid: 400, history: [{date: '2025-01-15', amount: 200}, {date: '2025-02-20', amount: 200}] },
+            { id: 10, name: 'AbgRizal', paid: 90, history: [{date: '2025-01-15', amount: 50}, {date: '2025-02-20', amount: 40}] }
+        ];
+
+        let expenses = [
+            { id: 101, date: '2025-01-15', category: 'Homestay', detail: 'Deposit Homestay Port Dickson', amount: 200 },
+            { id: 102, date: '2025-02-01', category: 'Pengangkutan', detail: 'Bayar Booking (Van Sewa)', amount: 150 },
+            { id: 103, date: '2025-02-06', category: 'Pengangkutan', detail: 'Bayar Booking (Full)', amount: 190 }
+        ];
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCountdown();
+            renderTable();
+            renderExpenses();
+            calculateSavings(); 
+            startImageSlider();
+            
+            if(sessionStorage.getItem('isAdmin') === 'true') {
+                enableAdminMode();
+            }
+        });
+
+        // --- IMAGE SLIDER LOGIC ---
+        
+        // Fungsi untuk menukar imej ke indeks tertentu
+        function goToSlide(index) {
+            const images = document.querySelectorAll('.image-slider .slider-image');
+            if (images.length === 0) return;
+            
+            // Keluarkan kelas 'active' dari imej semasa
+            images[currentImageIndex].classList.remove('active');
+            
+            // Kira indeks baru (pastikan ia berada dalam julat)
+            currentImageIndex = (index + images.length) % images.length;
+            
+            // Tambah kelas 'active' pada imej baru
+            images[currentImageIndex].classList.add('active');
+        }
+
+        // Fungsi untuk menukar slide berdasarkan arah (+1 atau -1)
+        function changeSlide(direction) {
+            // Hentikan auto-slide buat sementara waktu
+            clearInterval(slideInterval); 
+            
+            // Tukar slide
+            const newIndex = currentImageIndex + direction;
+            goToSlide(newIndex);
+            
+            // Mulakan semula auto-slide selepas jeda interaksi
+            slideInterval = setInterval(() => goToSlide(currentImageIndex + 1), 5000);
+        }
+
+        // Fungsi untuk mengemaskini slide secara automatik
+        function updateSliderImage() {
+            goToSlide(currentImageIndex + 1);
+        }
+
+        function startImageSlider() {
+            const sliderContainer = document.querySelector('.image-slider');
+            if (sliderContainer) {
+                 // Gantikan semua elemen dalam sliderContainer (kecuali butang)
+                 // Ini memastikan imej dari array JS digunakan, bukan HTML mock up
+                 const navButtons = sliderContainer.querySelectorAll('.slider-nav-btn');
+                 sliderContainer.innerHTML = '';
+                 
+                 // Masukkan imej
+                 sliderImages.forEach((imgData, index) => {
+                    const img = document.createElement('img');
+                    img.className = 'slider-image';
+                    img.src = imgData.url;
+                    img.alt = imgData.alt;
+                    // Handle image load error gracefully
+                    img.onerror = function() {
+                        this.src = `https://placehold.co/1920x250/500/ffffff?text=Image+Failed+to+Load`;
+                        this.onerror = null;
+                    }; 
+                    if (index === 0) img.classList.add('active');
+                    sliderContainer.appendChild(img);
+                 });
+                 
+                 // Masukkan semula butang navigasi (jika ada)
+                 navButtons.forEach(btn => sliderContainer.appendChild(btn));
+            }
+
+            // Mulakan auto-slide
+            slideInterval = setInterval(updateSliderImage, 5000); // Ganti setiap 5 saat
+        }
+
+
+        // --- UTILITY ---
+        function formatCurrency(num) {
+            // Updated to be compatible with iFrame environment and ensure proper formatting
+            try {
+                return new Intl.NumberFormat('ms-MY', { style: 'currency', currency: 'MYR', maximumFractionDigits: 0 }).format(num);
+            } catch (e) {
+                return `RM ${Math.round(num)}`;
+            }
+        }
+
+        // --- MENU LOGIC ---
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            const overlay = document.getElementById('menuOverlay');
+            
+            if (menu.classList.contains('-translate-x-full')) {
+                menu.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            } else {
+                menu.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.style.overflow = 'auto'; // Re-enable scrolling
+            }
+        }
+        
+        // Custom function to handle Home link (used by menu and squid icon)
+        function scrollToTopAndCloseMenu() {
+            scrollToTop();
+            // Wait for scroll to finish before closing menu for smoother UX
+            setTimeout(toggleMenu, 300);
+        }
+
+        // --- TIME LOGIC ---
+        function getRemainingTime() {
+            const now = new Date();
+            const current = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const target = new Date(DEADLINE.getFullYear(), DEADLINE.getMonth(), DEADLINE.getDate());
+            if (current >= target) return { expired: true, totalDays: 0, months: 0, days: 0 };
+            const timeDiff = target - current;
+            const totalDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            
+            // Calculate remaining months and days accurately
+            let targetMonth = target.getMonth();
+            let targetYear = target.getFullYear();
+            let currentMonth = current.getMonth();
+            let currentYear = current.getFullYear();
+
+            let months = (targetYear - currentYear) * 12 + (targetMonth - currentMonth);
+            let days = target.getDate() - current.getDate();
+
+            if (days < 0) {
+                months--;
+                // Get days in previous month (i.e., the month *before* the target month)
+                const lastMonthDays = new Date(targetYear, targetMonth, 0).getDate();
+                days += lastMonthDays;
+            }
+            
+            // Recalculate if days roll back a month
+            if (days >= new Date(targetYear, targetMonth, 0).getDate() && months >= 0) {
+                months++;
+                days = 0; // Or whatever day difference is necessary, but this simple logic is safer
+            }
+            
+            // Ensure non-negative and positive values
+            months = Math.max(0, months);
+            days = Math.max(0, days);
+            
+            // Fallback for edge cases, ensure total days is accurate
+            if (months * 30.44 + days > totalDays + 1) { // Basic sanity check
+                // Reset to simple conversion if date math is complex near year end
+                months = Math.floor(totalDays / 30.44);
+                days = Math.ceil(totalDays % 30.44);
+            }
+
+            return { expired: false, totalDays: totalDays, displayMonths: months, displayDays: days };
+        }
+
+        function updateCountdown() {
+            const timeData = getRemainingTime();
+            if (timeData.expired) {
+                 document.getElementById('countdownDisplay').innerHTML = `<span class="text-2xl">Tamat Tempoh</span>`;
+                 document.getElementById('totalDaysDebug').innerText = `(Misi Dah Berlepas!)`;
+                 return;
+            }
+            document.getElementById('countdownDisplay').innerText = `${timeData.displayMonths} Bulan ${timeData.displayDays} Hari`;
+            document.getElementById('totalDaysDebug').innerText = `(Jumlah: ${timeData.totalDays} hari lagi)`;
+        }
+
+        // --- SCROLL TO TOP LOGIC ---
+        const scrollBtn = document.getElementById('scrollToTopBtn');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollBtn.classList.add('show');
+            } else {
+                scrollBtn.classList.remove('show');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- MEMBERS TABLE & STATS ---
+        function renderTable() {
+            const tbody = document.getElementById('memberTableBody');
+            tbody.innerHTML = '';
+            // TUKAR TAJUK GAH DI SINI
+            document.getElementById('tableTitle').innerText = `Tabung Pemburu Sotong`;
+            
+            // Sorting by Progress (Highest Paid first)
+            members.sort((a, b) => {
+                const progressA = (a.paid / TARGET_PER_PERSON) * 100;
+                const progressB = (b.paid / TARGET_PER_PERSON) * 100;
+                return progressB - progressA; // Sort descending (Highest Progress at the top)
+            });
+
+            let totalCollected = 0;
+
+            members.forEach(member => {
+                totalCollected += member.paid;
+                const percentage = Math.min(100, (member.paid / TARGET_PER_PERSON) * 100);
+                
+                // --- UPDATE: Replace Baki Column with Printer Icon ---
+                const row = `
+                    <tr class="hover:bg-gray-50 transition border-b border-gray-50 last:border-0">
+                        <td class="p-4"><div class="font-bold text-gray-800">${member.name}</div></td>
+                        <td class="p-4 text-center">
+                            <div class="w-24 mx-auto bg-gray-200 rounded-full h-1.5 mt-1"><div class="bg-emerald-500 h-1.5 rounded-full" style="width: ${percentage}%"></div></div>
+                            <div class="text-xs text-gray-400 mt-1">${Math.round(percentage)}%</div>
+                        </td>
+                        <td class="p-4 text-right font-mono text-emerald-700 font-bold">${formatCurrency(member.paid)}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="openDetailsModal(${member.id})" class="text-gray-400 hover:text-blue-600 transition p-2 rounded-full hover:bg-blue-50" title="Lihat Perincian">
+                                <i class="fa-solid fa-print"></i>
+                            </button>
+                        </td>
+                        <td class="p-4 text-center admin-col ${isAdmin ? '' : 'hidden'} whitespace-nowrap">
+                            <button onclick="openEditModal(${member.id})" class="text-blue-500 hover:text-blue-700 transition p-2 rounded hover:bg-blue-50 mr-1"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="openDeleteModal(${member.id}, 'member')" class="text-red-400 hover:text-red-600 transition p-2 rounded hover:bg-red-50"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>`;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('totalCollectedDisplay').innerText = formatCurrency(totalCollected);
+            const totalTarget = members.length * TARGET_PER_PERSON;
+            const totalPercent = totalTarget > 0 ? (totalCollected / totalTarget) * 100 : 0;
+            document.getElementById('progressBar').style.width = `${totalPercent}%`;
+            document.getElementById('percentDisplay').innerText = `${Math.round(totalPercent)}% Dicapai`;
+
+            // --- UPDATE TABLE SUMMARY CARD (NEW) ---
+            const summaryCollectedEl = document.getElementById('tableSummaryCollected');
+            const summaryProgressEl = document.getElementById('tableSummaryProgress');
+            const summaryPercentEl = document.getElementById('tableSummaryPercent');
+
+            if (summaryCollectedEl) summaryCollectedEl.innerText = formatCurrency(totalCollected);
+            if (summaryProgressEl) summaryProgressEl.style.width = `${totalPercent}%`;
+            if (summaryPercentEl) summaryPercentEl.innerText = `${Math.round(totalPercent)}% Dicapai`;
+            
+            updateExpenseSummary(totalCollected);
+        }
+
+        // --- DETAILS MODAL LOGIC (NEW) ---
+        function openDetailsModal(id) {
+            const member = members.find(m => m.id === id);
+            if (!member) return;
+
+            document.getElementById('detailMemberName').innerText = member.name;
+            const tbody = document.getElementById('detailsTableBody');
+            tbody.innerHTML = '';
+
+            let total = 0;
+
+            if (member.history && member.history.length > 0) {
+                // Sort by date (latest first)
+                member.history.sort((a,b) => new Date(b.date) - new Date(a.date));
+                
+                member.history.forEach(tx => {
+                    total += tx.amount;
+                    tbody.innerHTML += `
+                        <tr class="border-b border-dashed border-gray-100 last:border-0">
+                            <td class="py-2 text-xs">${tx.date}</td>
+                            <td class="py-2 text-right font-mono text-xs font-medium text-gray-700">${formatCurrency(tx.amount)}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                // Fallback if no history but has paid amount (Legacy data support)
+                if (member.paid > 0) {
+                     tbody.innerHTML = `
+                        <tr class="border-b border-dashed border-gray-100">
+                            <td class="py-2 text-xs text-gray-400 italic">Rekod Lama</td>
+                            <td class="py-2 text-right font-mono text-xs font-medium text-gray-700">${formatCurrency(member.paid)}</td>
+                        </tr>
+                    `;
+                    total = member.paid;
+                } else {
+                     tbody.innerHTML = `<tr><td colspan="2" class="py-4 text-center text-xs text-gray-400">Tiada rekod pembayaran.</td></tr>`;
+                }
+            }
+
+            document.getElementById('detailTotal').innerText = formatCurrency(total);
+            
+            const modal = document.getElementById('detailsModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('detailsModalContent').classList.remove('scale-95');
+                document.getElementById('detailsModalContent').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeDetailsModal() {
+             const modal = document.getElementById('detailsModal');
+            document.getElementById('detailsModalContent').classList.remove('scale-100');
+            document.getElementById('detailsModalContent').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 150);
+        }
+
+
+        // --- Checklist Angler — Enhanced Version ---
+        (function () {
+          const STORAGE_KEY = 'angler_checklist_v1';
+        
+          // helpers
+          function getCheckItems() { return Array.from(document.querySelectorAll('.check-item')); }
+          function getCategoryBodies() { return Array.from(document.querySelectorAll('.category-body')); }
+          const checklistRoot = document.getElementById('checklistSection');
+          const headers = Array.from(document.querySelectorAll('.cat-header'));
+          const resetBtn = document.getElementById('resetChecklistBtn');
+        
+          if (!checklistRoot || getCheckItems().length === 0) return;
+        
+          // Load saved state (defensive)
+          function loadSaved() {
+            try {
+              return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            } catch (e) {
+              console.warn('angler checklist: corrupted saved state. Clearing.', e);
+              localStorage.removeItem(STORAGE_KEY);
+              return {};
+            }
+          }
+          let saved = loadSaved();
+        
+          // NEW: Apply saved or default (DEFAULT = all UNCHECKED)
+          function applySavedOrDefault() {
+            getCheckItems().forEach(cb => {
+              const k = cb.dataset.key;
+              if (k && Object.prototype.hasOwnProperty.call(saved, k)) {
+                // use user's saved preference
+                cb.checked = !!saved[k];
+              } else {
+                // NO saved value -> default to unchecked (false)
+                cb.checked = false;
+              }
+            });
+          }
+          applySavedOrDefault();
+        
+          // Save state
+          function saveState() {
+            const state = {};
+            getCheckItems().forEach(cb => {
+              const k = cb.dataset.key;
+              if (k) state[k] = !!cb.checked;
+            });
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+              saved = state;
+            } catch (e) {
+              console.warn('angler checklist: cannot save to localStorage', e);
+            }
+          }
+        
+          // Wire change handlers
+          function wireCheckboxes() {
+            getCheckItems().forEach(cb => {
+              cb.removeEventListener('change', saveState);
+              cb.addEventListener('change', saveState);
+            });
+          }
+          wireCheckboxes();
+        
+          // Toggle animation: slide open/close by manipulating max-height
+          function openBody(body) {
+            body.setAttribute('data-collapsed', 'false');
+            body.setAttribute('aria-hidden', 'false');
+            const startHeight = body.clientHeight;
+            const target = body.scrollHeight;
+            body.style.transition = 'max-height 260ms ease';
+            body.style.maxHeight = startHeight + 'px';
+            requestAnimationFrame(() => {
+              body.style.maxHeight = target + 'px';
+            });
+          }
+        
+          function closeBody(body) {
+            body.setAttribute('data-collapsed', 'true');
+            body.setAttribute('aria-hidden', 'true');
+            const start = body.clientHeight;
+            body.style.transition = 'max-height 220ms ease';
+            body.style.maxHeight = start + 'px';
+            requestAnimationFrame(() => {
+              body.style.maxHeight = '0px';
+            });
+          }
+        
+          // When transition ends, if opened set max-height to none to allow fluid content changes
+          function onBodyTransitionEnd(e) {
+            const body = e.currentTarget;
+            const collapsed = body.getAttribute('data-collapsed') === 'true';
+            if (!collapsed) {
+              body.style.maxHeight = 'none';
+            } else {
+              body.style.maxHeight = '0px';
+            }
+            body.style.transition = '';
+          }
+        
+          // Attach transitionend to all category bodies
+          getCategoryBodies().forEach(b => {
+            b.addEventListener('transitionend', onBodyTransitionEnd);
+          });
+        
+          // Toggle handler for a header: either open or close its body
+          function toggleHeader(header) {
+            const body = header.nextElementSibling;
+            const arrow = header.querySelector('.cat-arrow');
+            if (!body) return;
+            const collapsed = body.getAttribute('data-collapsed') === 'true';
+        
+            if (collapsed) {
+              if (arrow) arrow.classList.add('rotate-180');
+              // ensure computed height available
+              if (body.style.maxHeight === 'none' || body.style.maxHeight === '') {
+                body.style.maxHeight = body.scrollHeight + 'px';
+              }
+              openBody(body);
+              header.setAttribute('aria-expanded', 'true');
+            } else {
+              if (arrow) arrow.classList.remove('rotate-180');
+              closeBody(body);
+              header.setAttribute('aria-expanded', 'false');
+            }
+          }
+        
+          // Wire header click & keyboard
+          headers.forEach(h => {
+            h.setAttribute('aria-expanded', 'false');
+            h.addEventListener('click', () => toggleHeader(h));
+            h.addEventListener('keydown', (ev) => {
+              if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggleHeader(h); }
+            });
+          });
+        
+          // Reset button (mock): confirm -> set all to UNCHECKED -> close categories (NO localStorage)
+          if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+          
+              // set all to unchecked (mock only)
+              getCheckItems().forEach(cb => { cb.checked = false; });
+          
+              // close all open category bodies
+              getCategoryBodies().forEach(b => {
+                b.style.transition = '';
+                b.style.maxHeight = '0px';
+                b.setAttribute('data-collapsed', 'true');
+                b.setAttribute('aria-hidden', 'true');
+          
+                const header = b.previousElementSibling;
+                const arrow = header && header.querySelector('.cat-arrow');
+                if (arrow) arrow.classList.remove('rotate-180');
+                if (header) header.setAttribute('aria-expanded', 'false');
+              });
+          
+              // re-wire listeners (safe no-op if already wired)
+              wireCheckboxes();
+          
+              // return focus to reset for accessibility
+              resetBtn.focus();
+            });
+          }
+        
+          // Observe dynamic additions
+          if (window.MutationObserver) {
+            const mo = new MutationObserver((mutations) => {
+              let added = false;
+              for (const m of mutations) {
+                for (const n of m.addedNodes) {
+                  if (n.nodeType === 1) {
+                    if (n.matches && n.matches('.check-item')) added = true;
+                    if (n.querySelector && n.querySelector('.check-item')) added = true;
+                    if (n.matches && n.matches('.category-body')) {
+                      n.setAttribute('data-collapsed', 'true');
+                      n.setAttribute('aria-hidden', 'true');
+                      n.style.maxHeight = '0px';
+                      n.addEventListener('transitionend', onBodyTransitionEnd);
+                    }
+                  }
+                }
+              }
+              if (added) {
+                applySavedOrDefault(); // ensure new items also follow saved/default logic
+                wireCheckboxes();
+              }
+            });
+            mo.observe(checklistRoot, { childList: true, subtree: true });
+          }
+        
+          // ensure save is called if user toggled before script finishes wiring
+          // (already wired via wireCheckboxes)
+        
+          // Expose small helper (optional)
+          window.checklistSaveState = saveState;
+        
+        })();
+
+        // --- EXPENSES LOGIC (UPDATED) ---
+        function renderExpenses() {
+            const tbody = document.getElementById('expensesTableBody');
+            tbody.innerHTML = '';
+            
+            // Sort expenses by date descending
+            expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            if (expenses.length === 0) {
+                document.getElementById('noExpensesMsg').classList.remove('hidden');
+            } else {
+                document.getElementById('noExpensesMsg').classList.add('hidden');
+                expenses.forEach(exp => {
+                    const row = `
+                        <tr class="hover:bg-gray-50 transition border-b border-gray-50 last:border-0">
+                            <td class="p-4 text-sm text-gray-500">${exp.date}</td>
+                            <td class="p-4">
+                                <span class="font-bold text-gray-700 block">${exp.category}</span>
+                                <span class="text-xs text-gray-500 italic">(${exp.detail})</span>
+                            </td>
+                            <td class="p-4 text-right font-mono text-red-500 font-bold">-${formatCurrency(exp.amount)}</td>
+                            <td class="p-4 text-center admin-col ${isAdmin ? '' : 'hidden'} whitespace-nowrap">
+                                <button onclick="openEditExpenseModal(${exp.id})" class="text-blue-500 hover:text-blue-700 transition p-2 rounded hover:bg-blue-50 mr-1"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="openDeleteModal(${exp.id}, 'expense')" class="text-red-400 hover:text-red-600 transition p-2 rounded hover:bg-red-50"><i class="fa-solid fa-trash-can"></i></button>
+                            </td>
+                        </tr>`;
+                    tbody.innerHTML += row;
+                });
+            }
+            
+            let totalCollected = members.reduce((sum, m) => sum + m.paid, 0);
+            updateExpenseSummary(totalCollected);
+        }
+
+        function updateExpenseSummary(totalCollected) {
+            let totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+            let netBalance = totalCollected - totalExpenses;
+
+            document.getElementById('summaryCollected').innerText = formatCurrency(totalCollected);
+            document.getElementById('summaryExpenses').innerText = formatCurrency(totalExpenses);
+            document.getElementById('summaryNetBalance').innerText = formatCurrency(netBalance);
+            
+            const balEl = document.getElementById('summaryNetBalance');
+            if (netBalance < 0) balEl.className = "font-bold text-red-600";
+            else balEl.className = "font-bold text-blue-600";
+        }
+
+        let currentExpenseEditingId = null;
+
+        function openExpenseModal() {
+            // Reset for Add New
+            currentExpenseEditingId = null;
+            document.getElementById('expenseModalTitle').innerText = "Rekod Perbelanjaan Baru";
+            document.getElementById('expCategory').value = "Pengangkutan";
+            document.getElementById('expDesc').value = "";
+            document.getElementById('expAmount').value = "";
+            
+            const modal = document.getElementById('expenseModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('expenseModalContent').classList.remove('scale-95');
+                document.getElementById('expenseModalContent').classList.add('scale-100');
+            }, 10);
+        }
+
+        function openEditExpenseModal(id) {
+            const exp = expenses.find(e => e.id === id);
+            if (!exp) return;
+            
+            currentExpenseEditingId = id;
+            document.getElementById('expenseModalTitle').innerText = "Kemaskini Belanja";
+            document.getElementById('expCategory').value = exp.category;
+            document.getElementById('expDesc').value = exp.detail;
+            document.getElementById('expAmount').value = exp.amount;
+
+            const modal = document.getElementById('expenseModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('expenseModalContent').classList.remove('scale-95');
+                document.getElementById('expenseModalContent').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeExpenseModal() {
+            const modal = document.getElementById('expenseModal');
+            document.getElementById('expenseModalContent').classList.remove('scale-100');
+            document.getElementById('expenseModalContent').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 150);
+            currentExpenseEditingId = null;
+        }
+
+        function saveExpense() {
+            const cat = document.getElementById('expCategory').value;
+            const amount = parseFloat(document.getElementById('expAmount').value);
+            const desc = document.getElementById('expDesc').value;
+            let detail = desc.trim() ? desc : "-";
+
+            if (isNaN(amount) || amount <= 0) {
+                // Using custom modal style for error message instead of alert
+                showStatusModal("Ralat Input", "Sila masukkan jumlah perbelanjaan yang sah (lebih dari RM 0).", "error");
+                return;
+            }
+
+            if (currentExpenseEditingId !== null) {
+                // UPDATE EXISTING
+                const index = expenses.findIndex(e => e.id === currentExpenseEditingId);
+                if (index !== -1) {
+                    expenses[index].category = cat;
+                    expenses[index].detail = detail;
+                    expenses[index].amount = amount;
+                }
+            } else {
+                // CREATE NEW
+                const newExp = {
+                    id: Date.now(),
+                    date: new Date().toISOString().split('T')[0],
+                    category: cat,
+                    detail: detail,
+                    amount: amount
+                };
+                expenses.push(newExp);
+            }
+
+            renderExpenses();
+            closeExpenseModal();
+            showStatusModal("Berjaya!", "Rekod perbelanjaan telah disimpan.", "success");
+        }
+        
+        // --- CUSTOM ALERT/CONFIRM MODAL (Replacement for alert/confirm) ---
+        function showStatusModal(title, message, type = 'info') {
+            // Reusing delete modal structure for simplicity, just changing content
+            const modal = document.getElementById('deleteModal');
+            const content = document.getElementById('deleteModalContent');
+            const iconContainer = content.querySelector('.mx-auto');
+            const icon = iconContainer.querySelector('i');
+            const nameEl = document.getElementById('deleteItemName');
+            
+            // Reconfigure for Status/Alert
+            iconContainer.classList.remove('bg-red-100');
+            icon.classList.remove('fa-triangle-exclamation', 'text-red-600');
+            
+            if (type === 'success') {
+                 iconContainer.classList.add('bg-emerald-100');
+                 icon.classList.add('fa-check-circle', 'text-emerald-600');
+            } else if (type === 'error') {
+                 iconContainer.classList.add('bg-red-100');
+                 icon.classList.add('fa-triangle-exclamation', 'text-red-600');
+            } else { // info
+                 iconContainer.classList.add('bg-blue-100');
+                 icon.classList.add('fa-circle-info', 'text-blue-600');
+            }
+
+            content.querySelector('h3').innerText = title;
+            content.querySelector('p').innerText = message;
+            
+            // Hide delete buttons and show a single close button
+            content.querySelector('.flex.justify-center.gap-3').innerHTML = `
+                <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition">Tutup</button>
+            `;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        // Override default browser functions (Critical Mandate)
+        window.alert = (message) => showStatusModal("Notifikasi", message, "info");
+
+
+        // --- CALCULATOR LOGIC (UPDATED WITH SUGGESTION) ---
+        function calculateSavings() {
+            const currentSavings = parseFloat(document.getElementById('calcCurrentSavings').value) || 0;
+            const paidAmount = parseFloat(document.getElementById('calcPaidAmount').value) || 0; // Ambil nilai yang dah dibayar
+            
+            // Formula Baru: Target - (Duit Tangan + Duit Dah Bayar)
+            const totalAssets = currentSavings + paidAmount;
+            const needed = Math.max(0, TARGET_PER_PERSON - totalAssets);
+            
+            document.getElementById('calcNeeded').innerText = formatCurrency(needed);
+
+            const timeData = getRemainingTime();
+            
+            const suggestionBox = document.getElementById('calcSuggestion');
+            const suggestionText = document.getElementById('calcSuggestionText');
+
+            if (timeData.expired || needed <= 0) {
+                 document.getElementById('calcMonthly').innerText = "RM 0";
+                 document.getElementById('calcWeekly').innerText = "RM 0";
+                 
+                 suggestionBox.classList.add('hidden');
+                 if(needed <= 0) {
+                     suggestionBox.classList.remove('hidden');
+                     suggestionText.innerText = `Mantap! Target bayaran anda (RM ${TARGET_PER_PERSON}) sudah dicapai!`;
+                     suggestionBox.classList.remove('bg-indigo-50');
+                     suggestionBox.classList.add('bg-emerald-50');
+                 }
+                 return;
+            }
+
+            // Using total days for a more accurate calculation
+            const weeksLeft = Math.max(1, Math.ceil(timeData.totalDays / 7));
+            const weeklyPayment = needed / weeksLeft;
+            const monthsLeft = Math.max(1, timeData.displayMonths); // Use display months for cleaner rounding
+            const monthlyPayment = needed / (monthsLeft || 1);
+
+            document.getElementById('calcMonthly').innerText = formatCurrency(monthlyPayment);
+            document.getElementById('calcWeekly').innerText = formatCurrency(weeklyPayment);
+            
+            suggestionBox.classList.remove('hidden');
+            suggestionBox.classList.add('bg-indigo-50'); // Ensure background is correct for saving
+            suggestionText.innerText = `Tips: Simpan RM${Math.ceil(weeklyPayment)} seminggu dari sekarang untuk capai target dalam ${weeksLeft} minggu.`;
+        }
+
+        // --- ADMIN / MODALS LOGIC ---
+        
+        function toggleAdminMode() {
+            if (isAdmin) {
+                // Logout
+                isAdmin = false;
+                sessionStorage.removeItem('isAdmin');
+                document.getElementById('authBtn').innerHTML = '<i class="fa-solid fa-lock"></i> <span class="hidden md:inline">Admin Login</span>';
+                document.getElementById('authBtn').classList.remove('bg-red-600', 'border-red-500');
+                document.getElementById('authBtn').classList.add('bg-blue-800/50', 'border-blue-500/50');
+                document.getElementById('adminBadge').classList.add('hidden');
+                document.getElementById('addMemberBtn').classList.add('hidden');
+                document.getElementById('addExpenseBtn').classList.add('hidden');
+                
+                document.querySelectorAll('.admin-col').forEach(el => el.classList.add('hidden'));
+                
+                // Re-render to hide Admin columns immediately
+                renderTable();
+                renderExpenses();
+                showStatusModal("Log Keluar", "Anda telah log keluar dari Mod Admin.", "info");
+
+            } else {
+                openLoginModal();
+            }
+        }
+
+        function openLoginModal() {
+            const modal = document.getElementById('loginModal');
+            document.getElementById('adminUsernameInput').value = '';
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('loginError').classList.add('hidden');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('loginModalContent').classList.remove('scale-95');
+                document.getElementById('loginModalContent').classList.add('scale-100');
+                document.getElementById('adminUsernameInput').focus();
+            }, 10);
+        }
+
+        function closeLoginModal() {
+            const modal = document.getElementById('loginModal');
+            document.getElementById('loginModalContent').classList.remove('scale-100');
+            document.getElementById('loginModalContent').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 150);
+        }
+
+        function attemptLogin() {
+            const user = document.getElementById('adminUsernameInput').value;
+            const pass = document.getElementById('adminPasswordInput').value;
+            
+            // Admin Credentials are hardcoded (as mock data)
+            if (user === 'fahmie' && pass === 'Ummc@1234567890') {
+                enableAdminMode();
+                closeLoginModal();
+                showStatusModal("Log Masuk Berjaya", "Mod Admin diaktifkan. Anda kini boleh mengedit rekod.", "success");
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        }
+
+        function enableAdminMode() {
+            isAdmin = true;
+            sessionStorage.setItem('isAdmin', 'true');
+            document.getElementById('authBtn').innerHTML = '<i class="fa-solid fa-right-from-bracket"></i> Logout';
+            document.getElementById('authBtn').classList.remove('bg-blue-800/50', 'border-blue-500/50');
+            document.getElementById('authBtn').classList.add('bg-red-600', 'border-red-500');
+            document.getElementById('adminBadge').classList.remove('hidden');
+            document.getElementById('addMemberBtn').classList.remove('hidden');
+            document.getElementById('addExpenseBtn').classList.remove('hidden'); 
+            
+            document.querySelectorAll('.admin-col').forEach(el => el.classList.remove('hidden'));
+            
+            // Re-render to show Admin columns immediately
+            renderTable();
+            renderExpenses();
+        }
+
+        // --- EDIT / ADD / DELETE HELPERS ---
+        let currentEditingId = null;
+        let itemToDelete = { id: null, type: null }; 
+
+        function openEditModal(id) {
+            const member = members.find(m => m.id === id);
+            if (!member) return;
+            currentEditingId = id;
+            document.getElementById('modalMemberNameInput').value = member.name;
+            document.getElementById('modalAmount').value = member.paid;
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                 document.getElementById('modalContent').classList.remove('scale-95');
+                 document.getElementById('modalContent').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('editModal');
+            document.getElementById('modalContent').classList.remove('scale-100');
+            document.getElementById('modalContent').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 150);
+            currentEditingId = null;
+        }
+
+        function saveMemberData() {
+            if (currentEditingId === null) return;
+            const newName = document.getElementById('modalMemberNameInput').value;
+            const newAmount = parseFloat(document.getElementById('modalAmount').value);
+            
+            if (!newName.trim()) { 
+                showStatusModal("Ralat Input", "Nama ahli tidak boleh kosong.", "error"); 
+                return; 
+            }
+            if (isNaN(newAmount) || newAmount < 0) { 
+                showStatusModal("Ralat Input", "Sila masukkan jumlah bayaran yang sah.", "error"); 
+                return; 
+            }
+            
+            const index = members.findIndex(m => m.id === currentEditingId);
+            if (index !== -1) {
+                members[index].name = newName;
+                members[index].paid = newAmount;
+                renderTable();
+                calculateSavings();
+                closeModal();
+                showStatusModal("Berjaya!", `Data ahli ${newName} telah dikemaskini.`, "success");
+            }
+        }
+
+        function addMember() {
+            const newId = Date.now(); 
+            const newMember = { id: newId, name: "Ahli Baru", paid: 0, history: [] };
+            members.push(newMember);
+            renderTable();
+            // Open modal to immediately edit the new member
+            openEditModal(newId); 
+        }
+
+        // UNIFIED DELETE MODAL
+        function openDeleteModal(id, type) {
+            itemToDelete = { id, type };
+            let name = "";
+            let title = "Padam Rekod?";
+            
+            if (type === 'member') {
+                const item = members.find(m => m.id === id);
+                if(item) name = item.name;
+                title = `Padam Ahli (${name})?`;
+            } else {
+                const item = expenses.find(e => e.id === id);
+                if(item) name = `${item.category} (RM${item.amount})`;
+                title = `Padam Belanja (${item.category})?`;
+            }
+            
+            const modal = document.getElementById('deleteModal');
+            const content = document.getElementById('deleteModalContent');
+            
+            // Reset for delete confirmation
+            content.querySelector('.mx-auto').className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4';
+            content.querySelector('.mx-auto i').className = 'fa-solid fa-triangle-exclamation text-red-600 text-xl';
+            content.querySelector('h3').innerText = title;
+            content.querySelector('p').innerHTML = `Adakah anda pasti mahu memadam rekod <span class="font-bold text-gray-800">${name}</span>? Tindakan ini tidak boleh dikembalikan.`;
+            
+            // Set delete buttons
+            content.querySelector('.flex.justify-center.gap-3').innerHTML = `
+                <button onclick="closeDeleteModal()" class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition">Batal</button>
+                <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium shadow-md transition">Ya, Padam</button>
+            `;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('deleteModalContent').classList.remove('scale-95');
+                document.getElementById('deleteModalContent').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            document.getElementById('deleteModalContent').classList.remove('scale-100');
+            document.getElementById('deleteModalContent').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 150);
+            itemToDelete = { id: null, type: null };
+        }
+
+        function confirmDelete() {
+            let successMessage = "";
+            if (itemToDelete.type === 'member') {
+                members = members.filter(m => m.id !== itemToDelete.id);
+                renderTable();
+                calculateSavings();
+                successMessage = "Rekod ahli telah berjaya dipadam.";
+            } else if (itemToDelete.type === 'expense') {
+                expenses = expenses.filter(e => e.id !== itemToDelete.id);
+                renderExpenses();
+                successMessage = "Rekod perbelanjaan telah berjaya dipadam.";
+            }
+            closeDeleteModal();
+            showStatusModal("Berjaya Padam", successMessage, "success");
+        }
+
+    </script>
+</body>
+</html>
