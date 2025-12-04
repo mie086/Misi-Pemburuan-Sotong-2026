@@ -1552,44 +1552,24 @@
 
         // --- Swim Squid ---
         function triggerSquidSwim() {
-            // Kita buat gelung (loop) untuk keluarkan 6 ekor sotong serentak
-            const numberOfSquids = 6;
-        
-            for (let i = 0; i < numberOfSquids; i++) {
-                createSquid();
-            }
-        }
-        
-        function createSquid() {
+            // 1. Cipta elemen div baru untuk sotong
             const squid = document.createElement('div');
-            squid.innerText = '🦑'; 
+            squid.innerText = '🦑'; // Emoji sotong
             squid.classList.add('swimming-squid');
             
-            // --- RANDOMIZATION (Supaya nampak natural) ---
-        
-            // 1. Posisi Menegak: Antara 5% hingga 90% tinggi skrin
-            const randomTop = Math.floor(Math.random() * 85) + 5; 
+            // 2. Tetapkan posisi menegak (Top) secara rawak
+            // Supaya sotong muncul di pelbagai ketinggian skrin (antara 10% hingga 80% skrin)
+            const randomTop = Math.floor(Math.random() * 70) + 10; 
             squid.style.top = randomTop + '%';
         
-            // 2. Saiz: Antara 2rem (kecil/jauh) hingga 5rem (besar/dekat)
-            const randomSize = (Math.random() * 3) + 2; 
-            squid.style.fontSize = randomSize + 'rem';
-            
-            // 3. Kelajuan: Antara 3 saat (laju) hingga 6 saat (perlahan)
-            const randomSpeed = (Math.random() * 3) + 3;
-            squid.style.animationDuration = randomSpeed + 's';
-        
-            // 4. Delay: Supaya tak keluar serentak 'tepat'. Ada yang lambat sikit (0 - 0.5 saat)
-            const randomDelay = Math.random() * 0.5;
-            squid.style.animationDelay = randomDelay + 's';
-            
-            // Masukkan ke dalam body
+            // 3. Masukkan sotong ke dalam body
             document.body.appendChild(squid);
         
-            // Buang elemen selepas animasi tamat (Speed + Delay + buffer sikit)
+            // 4. Buang elemen sotong selepas 4 saat (bila animasi tamat)
+            // Supaya website tak jadi berat (memory leak)
             setTimeout(() => {
                 squid.remove();
-            }, (randomSpeed + randomDelay + 1) * 1000);
+            }, 4000);
         }
 
         // --- CALENDAR MODAL FUNCTIONS ---
