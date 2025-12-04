@@ -2,7 +2,9 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <title>Misi Pemburuan Sotong</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -11,35 +13,40 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
+        /* Tetapan Asas Body */
         body { 
             font-family: 'Poppins', sans-serif; 
             background-color: #0f172a;
-            /* Background Image: Night Sea Texture */
             background-image: linear-gradient(rgba(15, 23, 42, 0.8), rgba(6, 78, 59, 0.7)), url('https://images.unsplash.com/photo-1502758775495-9d33a651921a?q=80&w=1920&auto=format&fit=crop');
             background-size: cover;
             background-attachment: fixed;
             background-position: center;
-            /* UPDATED: Allow scrolling in all directions for compact view */
-            overflow: auto; 
             margin: 0;
             padding: 0;
-        } 
-        
-        /* Phone Frame + Auto Scale */
-        #mobile-wrapper {
-            width: 480px;               /* FIXED width – paling penting */
-            max-width: 480px;
-            margin: 0 auto;
+            
+            /* Penting: Pastikan scrollbar hanya pada body untuk mobile feel */
             min-height: 100vh;
+            display: flex;
+            justify-content: center; /* Sentiasa tengah */
+        } 
+
+        /* Phone Frame Wrapper */
+        #mobile-wrapper {
+            width: 100%;              /* Penuh pada skrin kecil */
+            max-width: 480px;         /* Hadkan lebar pada skrin besar (Desktop) */
+            min-height: 100vh;        /* Tinggi penuh */
             background-color: #1e293b;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            transform-origin: top center;
+            position: relative;
+            
+            /* Shadow hanya untuk estetik desktop */
+            box-shadow: 0 0 40px rgba(0,0,0,0.6);
         }
         
-        /* AUTO SCALE untuk semua skrin kecil */
+        /* OPTIONAL: Pengubahsuaian khusus untuk Mobile Sebenar */
         @media (max-width: 480px) {
             #mobile-wrapper {
-                transform: scale(calc(100vw / 480)); /* skala layout */
+                box-shadow: none; /* Buang shadow pada phone sebenar */
+                max-width: 100%;  /* Pastikan ia memenuhi skrin */
             }
         }
         .glass-panel {
