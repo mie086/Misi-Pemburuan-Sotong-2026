@@ -1506,8 +1506,6 @@
 
 
         // --- MOCK DATA (UPDATED WITH HISTORY PROPERTY) ---
-        // Peringatan: Data ini adalah 'mock data'.
-        // Added 'history' array to simulate payment details.
         let members = [
             { id: 1, name: 'Mie', paid: 100, history: [{date: '2025-10-10', amount: 50}, {date: '2025-10-16', amount: 50}] },
             { id: 2, name: 'John', paid: 200, history: [{date: '2025-10-10', amount: 50}, {date: '2025-10-16', amount: 50}, {date: '2025-12-03', amount: 100}] },
@@ -1901,8 +1899,10 @@
                             </button>
                         </td>
                         <td class="p-4 text-center admin-col ${isAdmin ? '' : 'hidden'} whitespace-nowrap">
-                            <button onclick="openEditModal(${member.id})" class="text-blue-500 hover:text-blue-700 transition p-2 rounded hover:bg-blue-50 mr-1"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="openDeleteModal(${member.id}, 'member')" class="text-red-400 hover:text-red-600 transition p-2 rounded hover:bg-red-50"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="openEditModal(${member.id})" class="text-blue-500 hover:text-blue-700 transition p-2 rounded hover:bg-blue-50 mr-1">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            
                         </td>
                     </tr>`;
                 tbody.innerHTML += row;
@@ -2214,7 +2214,7 @@
                                 -${formatCurrency(exp.amount)}
                             </td>
                             
-                            <td class="p-4 text-center admin-col ${isAdmin ? '' : 'hidden'} whitespace-nowrap align-top">
+                            <td class="p-4 text-center admin-col ${isAdmin ? '' : 'hidden'} whitespace-nowrap">
                                 <button onclick="openEditExpenseModal(${exp.id})" class="text-blue-500 hover:text-blue-700 transition p-2 rounded hover:bg-blue-50 mr-1">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
@@ -2324,41 +2324,11 @@
         
         // --- CUSTOM ALERT/CONFIRM MODAL (Replacement for alert/confirm) ---
         function showStatusModal(title, message, type = 'info') {
-            // Reusing delete modal structure for simplicity, just changing content
-            const modal = document.getElementById('deleteModal');
-            const content = document.getElementById('deleteModalContent');
-            const iconContainer = content.querySelector('.mx-auto');
-            const icon = iconContainer.querySelector('i');
-            const nameEl = document.getElementById('deleteItemName');
-            
-            // Reconfigure for Status/Alert
-            iconContainer.classList.remove('bg-red-100');
-            icon.classList.remove('fa-triangle-exclamation', 'text-red-600');
-            
-            if (type === 'success') {
-                 iconContainer.classList.add('bg-emerald-100');
-                 icon.classList.add('fa-check-circle', 'text-emerald-600');
-            } else if (type === 'error') {
-                 iconContainer.classList.add('bg-red-100');
-                 icon.classList.add('fa-triangle-exclamation', 'text-red-600');
-            } else { // info
-                 iconContainer.classList.add('bg-blue-100');
-                 icon.classList.add('fa-circle-info', 'text-blue-600');
-            }
-
-            content.querySelector('h3').innerText = title;
-            content.querySelector('p').innerText = message;
-            
-            // Hide delete buttons and show a single close button
-            content.querySelector('.flex.justify-center.gap-3').innerHTML = `
-                <button onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition">Tutup</button>
-            `;
-            
-            modal.classList.remove('hidden');
+            // Kita guna 'alert' biasa sahaja. Tak perlu HTML modal.
+            // 'setTimeout' digunakan supaya UI sempat update sebelum alert keluar
             setTimeout(() => {
-                content.classList.remove('scale-95');
-                content.classList.add('scale-100');
-            }, 10);
+                alert(`${title}\n\n${message}`);
+            }, 100);
         }
 
         // Override default browser functions (Critical Mandate)
@@ -2494,44 +2464,6 @@
             renderTable();
             // Open modal to immediately edit the new member
             openEditModal(newId); 
-        }
-
-        // UNIFIED DELETE MODAL
-        function openDeleteModal(id, type) {
-            itemToDelete = { id, type };
-            let name = "";
-            let title = "Padam Rekod?";
-            
-            if (type === 'member') {
-                const item = members.find(m => m.id === id);
-                if(item) name = item.name;
-                title = `Padam Ahli (${name})?`;
-            } else {
-                const item = expenses.find(e => e.id === id);
-                if(item) name = `${item.category} (RM${item.amount})`;
-                title = `Padam Belanja (${item.category})?`;
-            }
-            
-            const modal = document.getElementById('deleteModal');
-            const content = document.getElementById('deleteModalContent');
-            
-            // Reset for delete confirmation
-            content.querySelector('.mx-auto').className = 'mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4';
-            content.querySelector('.mx-auto i').className = 'fa-solid fa-triangle-exclamation text-red-600 text-xl';
-            content.querySelector('h3').innerText = title;
-            content.querySelector('p').innerHTML = `Adakah anda pasti mahu memadam rekod <span class="font-bold text-gray-800">${name}</span>? Tindakan ini tidak boleh dikembalikan.`;
-            
-            // Set delete buttons
-            content.querySelector('.flex.justify-center.gap-3').innerHTML = `
-                <button onclick="closeDeleteModal()" class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition">Batal</button>
-                <button onclick="confirmDelete()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium shadow-md transition">Ya, Padam</button>
-            `;
-            
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                document.getElementById('deleteModalContent').classList.remove('scale-95');
-                document.getElementById('deleteModalContent').classList.add('scale-100');
-            }, 10);
         }
 
     </script>
