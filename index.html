@@ -388,7 +388,10 @@
 
         <!-- PopUp Warning -->
         <div id="popup-warning-overlay" style="display:none;">
-            <div id="popup-warning-box">
+            <div id="popup-warning-box" style="position: relative;"> <span id="popup-timer" class="absolute top-3 right-3 bg-gray-200 text-gray-600 text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-full border border-gray-300">
+                    3
+                </span>
+        
                 <h2>PESANAN:</h2>
                 <p>
                     <strong>Selamat Datang</strong>, Harap maaf
@@ -487,9 +490,9 @@
                     </button>
 
                     <!-- Squid Icon Box - NOW FUNCTIONS AS SCROLL TO TOP / UTAMA -->
-                    <div onclick="triggerSquidSwim()" class="relative bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/20 shadow-inner float-animation cursor-pointer ml-3 overflow-hidden group" title="Panggil Sotong">
+                    <div onclick="triggerSquidSwim()" class="relative float-animation cursor-pointer ml-3 group" title="Panggil Sotong">
                         
-                        <span class="text-3xl filter drop-shadow-md relative z-10 transition-transform duration-100 active:scale-90 block">🦑</span>
+                        <span class="text-4xl filter drop-shadow-md relative z-10 transition-transform duration-100 active:scale-90 block">🦑</span>
                     
                     </div>
                     <div>
@@ -1547,14 +1550,49 @@
             { id: 102, date: '2025-10-16', category: 'Pengangkutan', detail: 'Bayar Booking (Van VVIP)', amount: 550 }
         ];
 
-        // --- Pop Up(new) ---
+        // --- Pop Up Warning dengan Auto-Close Timer ---
         document.addEventListener("DOMContentLoaded", function () {
-            // Buka popup setiap kali halaman dibuka/refresh
-            document.getElementById("popup-warning-overlay").style.display = "flex";
+            const overlay = document.getElementById("popup-warning-overlay");
+            const closeBtn = document.getElementById("popup-warning-button");
+            const timerDisplay = document.getElementById("popup-timer");
+            
+            // Tetapan Masa (3 Saat)
+            let timeLeft = 3;
+            
+            // Buka popup
+            overlay.style.display = "flex";
+            
+            // Fungsi Tutup Popup (supaya boleh diguna semula)
+            function closePopup() {
+                overlay.style.opacity = '0'; // Kesan fade out
+                setTimeout(() => {
+                    overlay.style.display = "none";
+                }, 300); // Tunggu animasi fade out habis
+                
+                // Matikan semua timer supaya tidak error di background
+                clearInterval(countdownInterval);
+                clearTimeout(autoCloseTimeout);
+            }
         
-            // Tutup popup bila tekan butang
-            document.getElementById("popup-warning-button").onclick = function () {
-                document.getElementById("popup-warning-overlay").style.display = "none";
+            // 1. Timer Countdown (Setiap 1 saat)
+            const countdownInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    timerDisplay.innerText = timeLeft;
+                } else {
+                    timerDisplay.innerText = "0";
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+        
+            // 2. Auto Close selepas 3 saat (3000ms)
+            const autoCloseTimeout = setTimeout(() => {
+                closePopup();
+            }, 3000);
+        
+            // 3. Jika user tekan butang "Saya Faham" sebelum masa tamat
+            closeBtn.onclick = function () {
+                closePopup();
             };
         });
 
