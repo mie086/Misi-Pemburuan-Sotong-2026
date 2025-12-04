@@ -1332,8 +1332,8 @@
                         <div class="grid grid-cols-2 gap-3">
                             <!-- Manager 1: John (Updated to ADMIN SQUAD) -->
                             <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-gray-100 hover:shadow-md transition bg-gradient-to-br from-blue-50 to-white text-center">
-                                    <div class="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold text-xl border-2 border-white shadow-sm mb-2">
-                                        J
+                                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl border-2 border-white shadow-sm mb-2">
+                                        <i class="fa-solid fa-robot"></i>
                                     </div>
                                     <div class="w-full">
                                         <h4 class="font-bold text-sm text-gray-800 leading-tight">John</h4>
@@ -1352,8 +1352,8 @@
 
                             <!-- Manager 2: ManRemy (Updated to ADMIN SQUAD) -->
                             <div class="flex flex-col items-center justify-center p-3 rounded-xl border border-gray-100 hover:shadow-md transition bg-gradient-to-br from-purple-50 to-white text-center">
-                                    <div class="w-12 h-12 rounded-full bg-purple-200 flex items-center justify-center text-purple-700 font-bold text-xl border-2 border-white shadow-sm mb-2">
-                                        M
+                                    <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-2xl border-2 border-white shadow-sm mb-2">
+                                        <i class="fa-solid fa-user-astronaut"></i>
                                     </div>
                                     <div class="w-full">
                                         <h4 class="font-bold text-sm text-gray-800 leading-tight">ManRemy</h4>
@@ -1549,6 +1549,22 @@
                 enableAdminMode();
             }
         });
+
+        // --- FUNGSI RESET CALCULATOR ---
+        function resetCalculator() {
+            // 1. Kosongkan kedua-dua kotak input
+            document.getElementById('calcCurrentSavings').value = '';
+            document.getElementById('calcPaidAmount').value = '';
+        
+            // 2. Jalankan semula kiraan supaya paparan kembali ke RM 0 / RM 500 (nilai asal)
+            calculateSavings();
+        
+            // 3. (Optional) Letak cursor pada input pertama untuk memudahkan pengguna
+            document.getElementById('calcCurrentSavings').focus();
+            
+            // 4. Papar notifikasi kecil (jika mahu)
+            showStatusModal("Reset Berjaya", "Kalkulator telah dikosongkan.", "info");
+        }
 
         // --- Swim Squid ---
         function triggerSquidSwim() {
