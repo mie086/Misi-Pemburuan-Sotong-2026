@@ -2218,9 +2218,6 @@
                                 <button onclick="openEditExpenseModal(${exp.id})" class="text-blue-500 hover:text-blue-700 transition p-2 rounded hover:bg-blue-50 mr-1">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
-                                <button onclick="openDeleteModal(${exp.id}, 'expense')" class="text-red-400 hover:text-red-600 transition p-2 rounded hover:bg-red-50">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
                             </td>
                         </tr>`;
                     tbody.innerHTML += row;
@@ -2535,30 +2532,6 @@
                 document.getElementById('deleteModalContent').classList.remove('scale-95');
                 document.getElementById('deleteModalContent').classList.add('scale-100');
             }, 10);
-        }
-
-        function closeDeleteModal() {
-            const modal = document.getElementById('deleteModal');
-            document.getElementById('deleteModalContent').classList.remove('scale-100');
-            document.getElementById('deleteModalContent').classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); }, 150);
-            itemToDelete = { id: null, type: null };
-        }
-
-        function confirmDelete() {
-            let successMessage = "";
-            if (itemToDelete.type === 'member') {
-                members = members.filter(m => m.id !== itemToDelete.id);
-                renderTable();
-                calculateSavings();
-                successMessage = "Rekod ahli telah berjaya dipadam.";
-            } else if (itemToDelete.type === 'expense') {
-                expenses = expenses.filter(e => e.id !== itemToDelete.id);
-                renderExpenses();
-                successMessage = "Rekod perbelanjaan telah berjaya dipadam.";
-            }
-            closeDeleteModal();
-            showStatusModal("Berjaya Padam", successMessage, "success");
         }
 
     </script>
