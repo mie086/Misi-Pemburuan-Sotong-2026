@@ -543,39 +543,64 @@
             <div class="grid grid-cols-2 gap-4">
                 
                 <!-- Card 1: Countdown - NOW CLICKABLE -->
-                <div onclick="openCalendarModal()" class="glass-panel rounded-2xl p-4 shadow-sm border-l-4 border-blue-500 relative overflow-hidden stat-card-link cursor-pointer">
-                    <div class="stat-content">
-                        <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-2">
+                <div onclick="openCalendarModal()" 
+                     class="glass-panel rounded-2xl p-4 shadow-sm border-l-4 border-blue-500 relative overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-blue-500/30 hover:-translate-y-1 active:scale-95 flex flex-col justify-between h-full">
+                    
+                    <div class="stat-content relative z-10">
+                        <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-2 transition-transform group-hover:scale-110 group-hover:rotate-12">
                             <i class="fa-solid fa-hourglass-half text-6xl text-blue-800"></i>
                         </div>
-                        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Masa Tinggal</h3>
-                        <span id="countdownDisplay" class="text-xl font-bold text-blue-600 leading-tight">0 Bulan 0 Hari</span>
-                        <span id="totalDaysDebug" class="text-[10px] text-gray-400 mt-0.5"></span>
-                        <p class="text-xs text-gray-400">Sehingga 1 Mei 2026</p>
+                        
+                        <h3 class="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-2">Masa Tinggal</h3>
+                        
+                        <span id="countdownDisplay" class="text-xl font-extrabold text-blue-600 leading-none block mb-1">
+                            Loading...
+                        </span>
+                        
+                        <div class="flex flex-col gap-0.5">
+                            <span id="totalDaysDebug" class="text-[10px] text-gray-400 font-medium"></span>
+                            <p class="text-[10px] text-gray-400 italic flex items-center gap-1">
+                                <i class="fa-regular fa-flag"></i> Sehingga 1 Mei 2026
+                            </p>
+                        </div>
                     </div>
+                
+                    <button class="bg-white text-blue-600 px-3 py-2 rounded-lg text-[10px] font-bold shadow-md w-full mt-4 uppercase tracking-wider hover:bg-blue-50 transition-colors border border-blue-100">
+                        Lihat Kalendar
+                    </button>
                 </div>
 
                 <!-- Card 2: Total Progress - NOW CLICKABLE -->
-                <div class="glass-panel rounded-2xl p-4 shadow-sm border-l-4 border-emerald-500 relative overflow-hidden stat-card-link" onclick="document.getElementById('memberSection').scrollIntoView({behavior: 'smooth'})">
-                     <div class="stat-content">
-                         <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-2">
-                            <i class="fa-solid fa-sack-dollar text-6xl text-emerald-800"></i>
-                        </div>
-                        <h3 class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Jumlah Terkumpul</h3>
-                        <!-- FIX: Increased text size -->
-                        <span id="totalCollectedDisplay" class="text-3xl font-bold text-emerald-600 leading-tight">RM 0</span>
-                        
-                        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-                            <div id="progressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
-                        </div>
-                        <div class="text-[10px] text-gray-500 mt-2 flex flex-col gap-1">
-                            <div class="flex justify-between items-center">
-                                <span class="font-bold text-emerald-400" id="percentDisplay">0%</span>
+                <div onclick="document.getElementById('memberSection').scrollIntoView({behavior: 'smooth'})" 
+                         class="glass-panel rounded-2xl p-4 shadow-sm border-l-4 border-emerald-500 relative overflow-hidden group cursor-pointer transition-all duration-300 hover:shadow-emerald-500/30 hover:-translate-y-1 active:scale-95 flex flex-col justify-between h-full">
+                         
+                         <div class="stat-content relative z-10">
+                             <div class="absolute right-0 top-0 opacity-10 transform translate-x-4 -translate-y-2 transition-transform group-hover:scale-110 group-hover:rotate-12">
+                                <i class="fa-solid fa-users text-6xl text-emerald-800"></i>
                             </div>
-                            <div class="font-bold text-emerald-400">Target: RM 5,000</div>
+                            
+                            <h3 class="text-gray-500 text-[10px] font-bold uppercase tracking-wider mb-2">Jumlah Terkumpul</h3>
+                            
+                            <span id="totalCollectedDisplay" class="text-3xl font-extrabold text-emerald-600 leading-none block mb-3">RM 0</span>
+                            
+                            <div class="w-full bg-gray-100 rounded-full h-1.5 mb-1.5 overflow-hidden border border-gray-100">
+                                <div id="progressBar" class="bg-emerald-500 h-1.5 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style="width: 0%"></div>
+                            </div>
+                            
+                            <div class="flex flex-col mt-0.5 gap-0">
+                                <span class="text-[10px] font-bold text-emerald-500 leading-tight" id="percentDisplay">
+                                    0% Dicapai
+                                </span>
+                                <span class="text-[10px] font-bold text-emerald-600 leading-tight">
+                                    Target: RM 5,000
+                                </span>
+                            </div>
                         </div>
+                
+                        <button class="bg-white text-emerald-600 px-3 py-2 rounded-lg text-[10px] font-bold shadow-md w-full mt-4 uppercase tracking-wider hover:bg-emerald-50 transition-colors border border-emerald-100">
+                            Lihat Jumlah
+                        </button>
                     </div>
-                </div>
 
                 <!-- Card 3: Calculator Teaser / Hab Kewangan - CLICKABLE -->
                 <div class="bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-2xl p-4 shadow-md flex flex-col justify-between items-start stat-card-link" onclick="document.getElementById('financeSection').scrollIntoView({behavior: 'smooth'})">
