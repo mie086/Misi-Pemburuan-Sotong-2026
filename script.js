@@ -7,23 +7,64 @@
         
         let isAdmin = false;
         
+        // --- FUNGSI BARU: TARIK DATA DARI SUPABASE ---
+        async function loadDataFromSupabase() {
+            
+            // Tunjuk status loading (optional, bagus untuk UX)
+            console.log("Sedang menarik data dari Supabase...");
+        
+            try {
+                // 1. Tarik data Members
+                // Kita guna .order('id') supaya susunan tak lari
+                let { data: membersData, error: errorMembers } = await supabaseClient
+                    .from('members')
+                    .select('*')
+                    .order('id', { ascending: true });
+        
+                if (errorMembers) throw errorMembers;
+        
+                // 2. Tarik data Expenses
+                let { data: expensesData, error: errorExpenses } = await supabaseClient
+                    .from('expenses')
+                    .select('*');
+        
+                if (errorExpenses) throw errorExpenses;
+        
+                // 3. Masukkan data ke dalam variable global
+                if (membersData) members = membersData;
+                if (expensesData) expenses = expensesData;
+        
+                // 4. Render semula table dengan data baru
+                renderTable();     // Update table ahli
+                renderExpenses();  // Update table belanja
+                
+                console.log("Data berjaya dikemaskini!");
+        
+            } catch (error) {
+                console.error("Gagal tarik data:", error.message);
+                alert("Maaf, ada masalah sambungan ke database.");
+            }
+        }
+        
         // --- 2. LOGIC LOGIN & LOGOUT ---
         
         document.addEventListener('DOMContentLoaded', async () => {
-            // Fungsi asal
-            renderTable();
-            renderExpenses();
+            
+            // 1. Jalan fungsi-fungsi UI biasa dulu
             startImageSlider();
             initChecklist();
-            
-            // Check session user
+        
+            // 2. PENTING: Panggil data dari Supabase
+            await loadDataFromSupabase(); 
+        
+            // 3. Check session user (Kod asal anda untuk Admin)
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 isAdmin = true;
                 updateAdminUI();
             }
             
-            // Toast logic
+            // 4. Toast logic (Kod asal anda)
             setTimeout(() => {
                 const toast = document.getElementById('paymentToast');
                 if(toast) {
@@ -32,6 +73,15 @@
                 }
             }, 4000); 
         });
+        
+        function closeToast() {
+            const toast = document.getElementById('paymentToast');
+            if(toast) {
+                toast.classList.add('-translate-x-full', 'opacity-0', 'pointer-events-none');
+                
+                if (window.toastTimer) clearTimeout(window.toastTimer);
+            }
+        }
         
         // --- PENGENDALIAN MODAL LOGIN/LOGOUT ---
         
@@ -177,58 +227,13 @@
         let slideInterval;
         
         // Tarikh telah ditukar kepada dd-mm-yyyy
-        let members = [
-            { id: 1, name: 'Mie', paid: 150, history: [{date: '10-10-2025', amount: 50}, {date: '16-10-2025', amount: 50}, {date: '05-12-2025', amount: 50}] },
-            { id: 2, name: 'John', paid: 200, history: [{date: '10-10-2025', amount: 50}, {date: '16-10-2025', amount: 50}, {date: '03-12-2025', amount: 100}] },
-            { id: 3, name: 'ManRemy', paid: 50, history: [{date: '16-10-2025', amount: 50}] },
-            { id: 4, name: 'Man', paid: 250, history: [{date: '10-10-2025', amount: 50}, {date: '16-10-2025', amount: 100}, {date: '27-10-2025', amount: 50}, {date: '03-12-2025', amount: 50}] },
-            { id: 5, name: 'En Lan', paid: 250, history: [{date: '09-10-2025', amount: 50}, {date: '16-10-2025', amount: 100}, {date: '05-12-2025', amount: 100}] },
-            { id: 6, name: 'AbgLan', paid: 250, history: [{date: '10-10-2025', amount: 50}, {date: '03-12-2025', amount: 100}, {date: '03-12-2025', amount: 100}] },
-            { id: 7, name: 'AbgWan', paid: 100, history: [{date: '10-10-2025', amount: 50}, {date: '16-10-2025', amount: 50}] },
-            { id: 8, name: 'Hariz', paid: 100, history: [{date: '16-10-2025', amount: 100}] },
-            { id: 9, name: 'Rosddi', paid: 100, history: [{date: '10-10-2025', amount: 50}, {date: '16-10-2025', amount: 50}] },
-            { id: 10, name: 'AbgRizal', paid: 100, history: [{date: '16-10-2025', amount: 100}] }
-        ];
-    
-        let expenses = [
-            { id: 101, date: '10-10-2025', category: 'Pengangkutan', detail: 'Bayar Booking (Boat)', amount: 350 },
-            { id: 102, date: '16-10-2025', category: 'Pengangkutan', detail: 'Bayar Booking (Van VVIP)', amount: 550 }
-        ];
+        let members = []; 
+        let expenses = [];
 
         // Parse Tarikh dd-mm-yyyy dengan selamat
         function parseMYDate(dateStr) {
             const [day, month, year] = dateStr.split('-').map(Number);
             return new Date(year, month - 1, day);
-        }
-
-        // --- INIT & AUTO POP-UP ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. Jalankan fungsi utama
-            renderTable();
-            renderExpenses();
-            startImageSlider();
-            initChecklist();
-
-            // 2. Jalankan Pop-up Toast (Auto)
-            setTimeout(() => {
-                const toast = document.getElementById('paymentToast');
-                if(toast) {
-                    toast.classList.remove('-translate-x-full', 'opacity-0', 'pointer-events-none');
-                    
-                    window.toastTimer = setTimeout(() => {
-                        closeToast();
-                    }, 6000); 
-                }
-            }, 4000); 
-        });
-        
-        function closeToast() {
-            const toast = document.getElementById('paymentToast');
-            if(toast) {
-                toast.classList.add('-translate-x-full', 'opacity-0', 'pointer-events-none');
-                
-                if (window.toastTimer) clearTimeout(window.toastTimer);
-            }
         }
 
         // --- HELPER TIME (PENTING!) ---
