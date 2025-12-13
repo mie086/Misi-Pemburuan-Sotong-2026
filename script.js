@@ -1,3 +1,163 @@
+        // --- 1. KONFIGURASI SUPABASE ---
+        const SUPABASE_URL = 'https://twbmjojqyhmjsoywiqrs.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3Ym1qb2pxeWhtanNveXdpcXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5MzUyODUsImV4cCI6MjA4MDUxMTI4NX0._Q3peI3s04DuBHyHE3qUl-OzcagrbpWdP2-QIid3agY';
+        
+        // Kita namakan 'supabaseClient' supaya tidak keliru dengan library asal
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        let isAdmin = false;
+        
+        // --- 2. LOGIC LOGIN & LOGOUT ---
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Fungsi asal
+            renderTable();
+            renderExpenses();
+            startImageSlider();
+            initChecklist();
+            
+            // Check session user
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                isAdmin = true;
+                updateAdminUI();
+            }
+            
+            // Toast logic
+            setTimeout(() => {
+                const toast = document.getElementById('paymentToast');
+                if(toast) {
+                    toast.classList.remove('-translate-x-full', 'opacity-0', 'pointer-events-none');
+                    window.toastTimer = setTimeout(() => closeToast(), 6000); 
+                }
+            }, 4000); 
+        });
+        
+        // --- PENGENDALIAN MODAL LOGIN/LOGOUT ---
+        
+        function checkAuthAndToggle() {
+            if (isAdmin) {
+                document.getElementById('logoutModal').classList.remove('hidden');
+            } else {
+                openLoginModal();
+            }
+        }
+        
+        function openLoginModal() {
+            const modal = document.getElementById('loginModal');
+            const content = document.getElementById('loginModalContent');
+            modal.classList.remove('hidden');
+            // Animasi masuk
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+        
+        function closeLoginModal() {
+            const modal = document.getElementById('loginModal');
+            const content = document.getElementById('loginModalContent');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+        
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').classList.add('hidden');
+        }
+        
+        // FUNGSI MODAL SUCCESS BARU
+        function openLogoutSuccessModal() {
+            const modal = document.getElementById('logoutSuccessModal');
+            // Pastikan kita select elemen dalam modal (div pertama) untuk animasi
+            const content = modal.querySelector('div'); 
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+        
+        function closeLogoutSuccessModal() {
+            const modal = document.getElementById('logoutSuccessModal');
+            const content = modal.querySelector('div');
+            
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+        
+        
+        // --- PROSES LOGIN & LOGOUT ---
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const btn = document.getElementById('btnLoginSubmit');
+            const errorMsg = document.getElementById('loginErrorMsg');
+        
+            // Loading UI
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+            btn.disabled = true;
+            errorMsg.classList.add('hidden');
+        
+            // FIX: Gunakan supabaseClient (bukan supabase)
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+        
+            if (error) {
+                console.error("Login Error:", error);
+                btn.innerHTML = 'Log Masuk <i class="fa-solid fa-arrow-right"></i>';
+                btn.disabled = false;
+                errorMsg.textContent = "Email atau password tidak sah.";
+                errorMsg.classList.remove('hidden');
+            } else {
+                // Berjaya Login
+                isAdmin = true;
+                closeLoginModal();
+                updateAdminUI();
+                btn.innerHTML = 'Log Masuk <i class="fa-solid fa-arrow-right"></i>';
+                btn.disabled = false;
+                
+                // Reset form
+                document.getElementById('adminEmail').value = '';
+                document.getElementById('adminPassword').value = '';
+            }
+        }
+        
+        async function handleLogout() {
+            // FIX: Gunakan supabaseClient
+            const { error } = await supabaseClient.auth.signOut();
+            if (!error) {
+                isAdmin = false;
+                closeLogoutModal(); // Tutup modal tanya "Pasti nak keluar?"
+                updateAdminUI();
+                
+                // GANTI ALERT DENGAN MODAL BARU
+                openLogoutSuccessModal(); 
+            }
+        }
+        
+        function updateAdminUI() {
+            const dot = document.getElementById('loginStatusDot');
+            if (isAdmin) {
+                dot.classList.remove('hidden'); 
+                console.log("Admin Mode: ON");
+            } else {
+                dot.classList.add('hidden'); 
+                console.log("Admin Mode: OFF");
+            }
+        }
+
         const TARGET_PER_PERSON = 500;
         const DEADLINE = new Date('2026-05-01');
     
