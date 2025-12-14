@@ -33,7 +33,8 @@
         
             } catch (error) {
                 console.error("Gagal tarik data:", error.message);
-                alert("Maaf, ada masalah sambungan ke database.");
+                
+                showDatabaseErrorModal(); 
             }
         }
         
@@ -1125,4 +1126,33 @@
                     }
                 }
             );
+        }
+
+        function showDatabaseErrorModal() {
+            const modal = document.getElementById('databaseErrorModal');
+            const content = modal.querySelector('div');
+            
+            modal.classList.remove('hidden');
+            // Animasi masuk
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+        
+        function closeDatabaseErrorModal() {
+            const modal = document.getElementById('databaseErrorModal');
+            const content = modal.querySelector('div');
+            
+            // Animasi keluar
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                // Optional: Reload page jika perlu reset sambungan
+                // location.reload(); 
+            }, 300);
         }
