@@ -1025,8 +1025,10 @@
                     const desc = modal.querySelector('p');
                     
                     if(title) title.innerText = "Sesi Tamat";
-                    if(desc) desc.innerText = "Anda telah dilog keluar kerana tidak aktif";
+                    if(desc) desc.innerText = "Anda telah dilog keluar kerana tidak aktif selama 3 minit.";
                 }
+        
+                openLogoutSuccessModal();
         
             }, AFK_LIMIT);
         }
