@@ -422,7 +422,7 @@
                 
                 let adminBtn = '';
                 if (isAdmin) {
-                    adminBtn = `<i onclick="editMemberConfig(${m.id})" class="fa-solid fa-pen text-[10px] ml-2 text-gray-300 hover:text-blue-500 cursor-pointer" title="Urus Ahli"></i>`;
+                    adminBtn = `<i onclick="editMemberConfig(${m.id})" class="fa-solid fa-pen-to-square text-[10px] ml-2 text-gray-300 hover:text-blue-500 cursor-pointer" title="Urus Ahli"></i>`;
                 }
         
                 tbody.innerHTML += `
@@ -624,7 +624,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-emerald-600">RM${h.amount}</span>
                                 <button onclick="prepareEditHistoryItem(${member.id}, ${index})" class="text-blue-400 hover:text-blue-600 ml-2 bg-white p-1 rounded border border-blue-100 shadow-sm" title="Edit">
-                                    <i class="fa-solid fa-pen"></i>
+                                    <i class="fa-solid fa-pen-to-square"></i>
                                 </button>
                                 <button onclick="deletePaymentHistoryItem(${member.id}, ${index})" class="text-red-400 hover:text-red-600 bg-white p-1 rounded border border-red-100 shadow-sm" title="Padam">
                                     <i class="fa-solid fa-trash"></i>
@@ -789,7 +789,7 @@
                         <span class="text-gray-600 font-mono">${h.date} <span class="text-gray-300">|</span> <span class="font-bold text-emerald-600">RM${h.amount}</span></span>
                         <div class="flex gap-2">
                             <button onclick="prepareEditPayment(${memberId}, ${index})" class="text-blue-400 hover:text-blue-600" title="Edit">
-                                <i class="fa-solid fa-pen"></i>
+                                <i class="fa-solid fa-pen-to-square"></i>
                             </button>
                             <button onclick="deletePaymentHistoryItem(${memberId}, ${index})" class="text-red-400 hover:text-red-600" title="Padam">
                                 <i class="fa-solid fa-trash"></i>
@@ -836,7 +836,7 @@
             setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.add('scale-100'); }, 10);
         
             document.getElementById('expenseModalTitle').innerText = "Kemaskini Perbelanjaan";
-            document.getElementById('btnExpSubmit').innerText = "Kemaskini";
+            document.getElementById('btnExpSubmit').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Kemaskini';
             
             document.getElementById('expId').value = e.id;
             
