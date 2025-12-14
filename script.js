@@ -193,20 +193,24 @@
         
         async function handleLogout() {
             const { error } = await supabaseClient.auth.signOut();
-            if (!error) {
-                isAdmin = false;
-                
-                stopAutoLogoutTimer(); // <--- TAMBAH BARIS INI
-                
-                closeLogoutModal(); 
-                updateAdminUI();
-                
-                const modal = document.getElementById('logoutSuccessModal');
-                modal.querySelector('h3').innerText = "Berjaya Log Keluar!";
-                modal.querySelector('p').innerText = "Sesi anda telah ditamatkan";
-                
-                openLogoutSuccessModal(); 
+            
+
+            isAdmin = false;
+            stopAutoLogoutTimer();
+            
+            closeLogoutModal(); 
+            updateAdminUI();
+            const modal = document.getElementById('logoutSuccessModal');
+            if (modal) {
+                const title = modal.querySelector('h3');
+                const desc = modal.querySelector('p');
+                if(title) title.innerText = "Berjaya Log Keluar!";
+                if(desc) desc.innerText = "Sesi anda telah ditamatkan";
             }
+            
+            openLogoutSuccessModal(); 
+            
+            if (error) console.warn("Logout server response:", error.message);
         }
         
         function updateAdminUI() {
