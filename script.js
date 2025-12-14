@@ -617,8 +617,7 @@
             }
         }
 
-        // --- 1. MEMBER CONFIG (Edit Nama + Tambah/Edit Bayaran + Delete) ---
-        
+
         function toggleMemberConfigModal(show) {
             const modal = document.getElementById('memberConfigModal');
             const content = modal.querySelector('div');
@@ -627,13 +626,15 @@
                 modal.classList.remove('hidden');
                 setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.add('scale-100'); }, 10);
                 
-                document.getElementById('memberModalTitle').innerHTML = "Tambah Ahli Baru";
+                document.getElementById('memberModalTitle').innerHTML = "Tambah Ahli";
+                
+                document.getElementById('btnSaveMember').innerHTML = '<i class="fa-solid fa-user-plus"></i> Tambah'; 
+                
                 document.getElementById('configMemberId').value = '';
                 document.getElementById('configMemberName').value = '';
                 
                 cancelHistoryEdit(); // Reset kotak hijau
         
-                // Sorok elemen admin (delete & history)
                 document.getElementById('btnDeleteMember').classList.add('hidden');
                 document.getElementById('memberHistorySection').classList.add('hidden');
         
@@ -644,15 +645,16 @@
             }
         }
         
-        // 1. Fungsi Buka Modal (Mode Edit User)
         function editMemberConfig(id) {
             const m = members.find(x => x.id === id);
             if (!m) return;
             
             toggleMemberConfigModal(true);
             
-            // Set UI
             document.getElementById('memberModalTitle').innerHTML = "Urus Ahli";
+            
+            document.getElementById('btnSaveMember').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Kemaskini';
+            
             document.getElementById('configMemberId').value = m.id;
             document.getElementById('configMemberName').value = m.name;
             document.getElementById('btnDeleteMember').classList.remove('hidden');
@@ -660,7 +662,6 @@
             renderMemberHistoryInModal(m);
         }
         
-        // 2. Fungsi Render Sejarah (Dengan butang Edit & Delete)
         function renderMemberHistoryInModal(member) {
             const historySection = document.getElementById('memberHistorySection');
             const container = document.getElementById('memberHistoryListContainer');
@@ -751,37 +752,31 @@
             };
         
             if (id) {
-                // --- PROSES UPDATE AHLI SEDIA ADA ---
                 const member = members.find(m => m.id == id);
                 let currentHistory = [...(member.history || [])];
                 
-                // 1. Logic Pembayaran
                 if (editIndex !== "") {
-                    // A. UPDATE SEJARAH LAMA
                     const idx = parseInt(editIndex);
                     if (amountVal > 0) {
-                        const dateStr = formatDate(dateInput); // Guna helper function
+                        const dateStr = formatDate(dateInput); 
                         currentHistory[idx] = { date: dateStr, amount: amountVal };
                     }
                 } else {
-                    // B. TAMBAH BAYARAN BARU
                     if (amountVal > 0) {
-                        const dateStr = formatDate(dateInput); // Guna helper function
+                        const dateStr = formatDate(dateInput); 
                         currentHistory.push({ date: dateStr, amount: amountVal });
                     }
                 }
         
-                // 2. Kira Semula Total Paid
                 const newTotalPaid = currentHistory.reduce((sum, h) => sum + parseFloat(h.amount), 0);
         
-                // 3. Hantar ke Supabase
                 const { error } = await supabaseClient
                     .from('members')
                     .update({ name: name, paid: newTotalPaid, history: currentHistory })
                     .eq('id', id);
                 
                 if(!error) { 
-                    showSuccessModal("Disimpan!", "Data ahli & bayaran berjaya dikemaskini.");
+                    showSuccessModal("Disimpan!", "Data ahli & bayaran berjaya dikemaskini");
                     
                     toggleMemberConfigModal(false); 
                     loadDataFromSupabase(); 
@@ -813,36 +808,31 @@
             }
         }
         
-        // 6. FUNGSI PADAM AHLI (YANG HILANG) ---
         async function deleteMember() {
             const id = document.getElementById('configMemberId').value;
-            
-            // Safety check
+        
             if(!id) return;
         
-            if(!confirm("AMARAN: Adakah anda pasti mahu membuang ahli ini?\nSemua rekod bayaran mereka akan hilang selamanya.")) return;
-            
-            // Loading indicator
-            const btn = document.getElementById('btnDeleteMember');
-            const originalText = btn.innerHTML;
-            btn.innerText = "Memadam...";
-            btn.disabled = true;
+            showConfirmationModal(
+                "Adakah anda pasti mahu padam ahli ini?",
+                async () => {
+
+                    const { error } = await supabaseClient
+                        .from('members')
+                        .delete()
+                        .eq('id', id);
         
-            const { error } = await supabaseClient
-                .from('members')
-                .delete()
-                .eq('id', id);
-        
-            if(!error) { 
-                showSuccessModal("Selesai", "Ahli telah berjaya dipadam dari sistem.");
-                
-                toggleMemberConfigModal(false); 
-                loadDataFromSupabase(); 
-            } else {
-                alert("Gagal memadam: " + error.message);
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
+                    if(!error) {
+                        toggleMemberConfigModal(false);
+                        
+                        showSuccessModal("Selesai", "Ahli telah berjaya dipadam");
+                        
+                        loadDataFromSupabase();
+                    } else {
+                        alert("Gagal memadam: " + error.message);
+                    }
+                }
+            );
         }
         
         // --- 2. PAYMENT & HISTORY (Full CRUD: Create, Read, Update, Delete) ---
@@ -890,7 +880,7 @@
                 setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.add('scale-100'); }, 10);
                 
                 document.getElementById('expenseModalTitle').innerText = "Tambah Perbelanjaan";
-                document.getElementById('btnExpSubmit').innerText = "Tambah";
+                document.getElementById('btnExpSubmit').innerHTML = '<i class="fa-solid fa-cart-plus"></i> Tambah';
                 document.getElementById('btnDeleteExp').classList.add('hidden');
                 
                 document.getElementById('expId').value = '';
@@ -998,7 +988,7 @@
                         .eq('id', id);
         
                     if(!error) { 
-                        showSuccessModal("Selesai!", "Rekod telah dipadam.");
+                        showSuccessModal("Selesai!", "Rekod telah dipadam");
                         toggleExpenseModal(false); 
                         loadDataFromSupabase(); 
                     } else {
