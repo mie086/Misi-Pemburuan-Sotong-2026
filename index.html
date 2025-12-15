@@ -721,7 +721,14 @@
                         </div>
                         <div class="w-1/2">
                             <label class="block text-[10px] font-bold text-gray-600 mb-1">Jumlah (RM)</label>
-                            <input type="number" id="initPayAmount" class="w-full p-2 bg-white border border-emerald-200 rounded-lg text-xs focus:border-emerald-500 outline-none" placeholder="0">
+                            <input 
+                                type="number" 
+                                id="initPayAmount" 
+                                step="10" 
+                                min="0" 
+                                oninput="this.step = this.value.includes('.') ? '0.01' : '10'"
+                                class="w-full p-2 bg-white border border-emerald-200 rounded-lg text-xs focus:border-emerald-500 outline-none" 
+                                placeholder="0.00">
                         </div>
                     </div>
                 </div>
@@ -764,10 +771,10 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Kategori</label>
                     <select id="expCategory" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-red-500 outline-none">
-                        <option value="Makanan">Makanan & Minuman</option>
-                        <option value="Pengangkutan">Pengangkutan & Minyak</option>
-                        <option value="Peralatan">Peralatan / Umpan</option>
-                        <option value="Logistik">Logistik / Penginapan</option>
+                        <option value="Pengangkutan">Pengangkutan</option>
+                        <option value="Peralatan & Keperluan Teknikal">Peralatan & Keperluan Teknikal</option>
+                        <option value="Makanan & Minuman">Makanan & Minuman</option>
+                        <option value="Penginapan">Penginapan</option>
                         <option value="Lain-lain">Lain-lain</option>
                     </select>
                 </div>
@@ -777,7 +784,15 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 mb-1">Jumlah (RM)</label>
-                    <input type="number" id="expAmount" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-red-500 outline-none" placeholder="0.00" required>
+                    <input 
+                        type="number" 
+                        id="expAmount" 
+                        step="10" 
+                        min="0" 
+                        oninput="this.step = this.value.includes('.') ? '0.01' : '10'"
+                        class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:border-red-500 outline-none" 
+                        placeholder="0.00" 
+                        required>
                 </div>
     
                 <div class="flex gap-2 pt-2">
@@ -854,6 +869,25 @@
             
             <button onclick="closeDatabaseErrorModal()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-bold transition shadow-lg tracking-wide">
                 Cuba Lagi
+            </button>
+        </div>
+    </div>
+
+    <div id="afkLogoutModal" class="fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-[200] hidden flex items-center justify-center transition-opacity opacity-0">
+        <div onclick="event.stopPropagation()" class="bg-white rounded-2xl p-8 w-[85%] max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 text-center relative border-t-4 border-amber-500">
+            
+            <div class="bg-amber-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-amber-500 animate-bounce">
+                <i class="fa-solid fa-hourglass-end text-3xl"></i>
+            </div>
+            
+            <h3 class="font-bold text-2xl text-slate-800 mb-3">Sesi Tamat</h3>
+            <p class="text-sm text-slate-500 leading-relaxed mb-8">
+                Anda telah dilog keluar secara automatik kerana <span class="font-bold text-slate-800">tidak aktif</span>
+            </p>
+            
+            <button onclick="closeAfkLogoutModal()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-bold transition shadow-lg tracking-wide flex items-center justify-center gap-2">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Saya Faham</span>
             </button>
         </div>
     </div>
