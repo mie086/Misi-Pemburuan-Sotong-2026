@@ -465,7 +465,7 @@
         }
         function renderTable() {
             const tbody = document.getElementById('memberTableBody');
-            tbody.innerHTML = '';
+            // Hapus baris ini: tbody.innerHTML = ''; (Kita akan override di hujung nanti)
         
             const targetDisplay = document.getElementById('totalTargetDisplay');
             if (targetDisplay) {
@@ -475,8 +475,11 @@
             const sortedMembers = [...members].sort((a,b) => b.paid - a.paid);
             let totalCollected = 0;
             
+            // 1. Buat satu variable kosong untuk kumpul HTML
+            let htmlContent = ''; 
+            
             sortedMembers.forEach(m => {
-                totalCollected += parseFloat(m.paid); // Pastikan nombor
+                totalCollected += parseFloat(m.paid);
                 
                 const pct = Math.min(100, (m.paid / TARGET_PER_PERSON) * 100);
                 const safeName = escapeHtml(m.name);
@@ -486,7 +489,8 @@
                     adminBtn = `<i onclick="editMemberConfig(${m.id})" class="fa-solid fa-pen-to-square text-[10px] ml-2 text-gray-300 hover:text-blue-500 cursor-pointer" title="Urus Ahli"></i>`;
                 }
         
-                tbody.innerHTML += `
+                // 2. Jangan guna tbody.innerHTML +=, tapi guna htmlContent +=
+                htmlContent += `
                     <tr class="border-b border-gray-50 hover:bg-gray-50">
                         <td class="p-3 font-bold text-gray-700 flex items-center">
                             ${safeName} ${adminBtn}
@@ -506,6 +510,9 @@
                     </tr>`;
             });
         
+            // 3. Masukkan ke DOM sekali sahaja! (Pantas 🚀)
+            tbody.innerHTML = htmlContent;
+        
             document.getElementById('tableSummaryCollected').innerText = formatCurrency(totalCollected);
         
             const globalPct = Math.min(100, (totalCollected / FIXED_TARGET) * 100);
@@ -515,7 +522,7 @@
             
             const pctText = document.getElementById('summaryPercentage');
             if(pctText) pctText.innerText = Math.round(globalPct) + '%';
-
+        
             updateExpensesSummary(totalCollected);
         }
 
@@ -545,10 +552,14 @@
 
         function renderExpenses() {
             const tbody = document.getElementById('expensesTableBody');
-            tbody.innerHTML = ''; 
+            // Hapus tbody.innerHTML = '';
+            
             document.getElementById('noExpensesMsg').className = expenses.length === 0 ? "p-6 text-center text-gray-400 text-sm" : "hidden";
         
             const sortedExpenses = [...expenses].sort((a,b) => parseMYDate(b.date) - parseMYDate(a.date));
+        
+            // 1. Variable pengumpul
+            let htmlContent = '';
         
             sortedExpenses.forEach(e => {
                 const safeDate = escapeHtml(e.date);
@@ -563,7 +574,8 @@
                     </button>`;
                 }
         
-                tbody.innerHTML += `
+                // 2. Kumpul dalam variable
+                htmlContent += `
                     <tr class="border-b border-gray-50 hover:bg-gray-50">
                         <td class="p-3 align-top text-gray-500 whitespace-nowrap">
                             ${safeDate}
@@ -577,7 +589,11 @@
                         <td class="p-3 text-right font-bold text-red-500">-${formatCurrency(e.amount)}</td>
                     </tr>`;
             });
-            updateExpensesSummary(members.reduce((sum, m) => sum + m.paid, 0)); // Recalculate summary
+            
+            // 3. Render sekali harung
+            tbody.innerHTML = htmlContent;
+        
+            updateExpensesSummary(members.reduce((sum, m) => sum + m.paid, 0)); 
         }
         function updateExpensesSummary(totalCollected) {
             let totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -735,31 +751,45 @@
             const id = document.getElementById('configMemberId').value;
             const name = document.getElementById('configMemberName').value;
             
+            // Tukar kepada Float, jika NaN (kosong), ia jadi 0
             const amountVal = parseFloat(document.getElementById('initPayAmount').value) || 0;
-            const dateInput = document.getElementById('initPayDate').value; // Format: yyyy-mm-dd
+            const dateInput = document.getElementById('initPayDate').value; 
             const editIndex = document.getElementById('editHistoryIndex').value;
         
             const formatDate = (isoDateString) => {
+                if (!isoDateString) return new Date().toLocaleDateString('en-GB').replace(/\//g, '-'); // Fallback date
                 const d = new Date(isoDateString);
-                const day = d.getDate().toString().padStart(2, '0');   // Tambah '0' jika < 10
-                const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Tambah '0' jika < 10
+                const day = d.getDate().toString().padStart(2, '0');
+                const month = (d.getMonth() + 1).toString().padStart(2, '0');
                 const year = d.getFullYear();
-                return `${day}-${month}-${year}`;
+                return `${day}-${month}-${year}`; // Format DD-MM-YYYY
             };
+        
+            if ((amountVal <= 0) && (dateInput || editIndex !== "")) {
+                const amountInput = document.getElementById('initPayAmount');
+        
+                amountInput.setCustomValidity("please fill out this field.");
+        
+                amountInput.reportValidity();
+        
+                amountInput.oninput = function() {
+                    this.setCustomValidity("");
+                };
+        
+                return; 
+            }
         
             if (id) {
                 const member = members.find(m => m.id == id);
                 let currentHistory = [...(member.history || [])];
                 
-                if (editIndex !== "") {
-                    const idx = parseInt(editIndex);
-                    if (amountVal > 0) {
-                        const dateStr = formatDate(dateInput); 
+                if (amountVal > 0) {
+                    const dateStr = formatDate(dateInput); 
+                    
+                    if (editIndex !== "") {
+                        const idx = parseInt(editIndex);
                         currentHistory[idx] = { date: dateStr, amount: amountVal };
-                    }
-                } else {
-                    if (amountVal > 0) {
-                        const dateStr = formatDate(dateInput); 
+                    } else {
                         currentHistory.push({ date: dateStr, amount: amountVal });
                     }
                 }
@@ -773,7 +803,6 @@
                 
                 if(!error) { 
                     showSuccessModal("Disimpan!", "Data ahli & bayaran berjaya dikemaskini");
-                    
                     toggleMemberConfigModal(false); 
                     loadDataFromSupabase(); 
                 } else {
@@ -785,7 +814,7 @@
                 let paid = 0;
                 
                 if (amountVal > 0) {
-                    const dateStr = formatDate(dateInput); // Guna helper function
+                    const dateStr = formatDate(dateInput);
                     history.push({ date: dateStr, amount: amountVal });
                     paid = amountVal;
                 }
@@ -796,9 +825,10 @@
                     
                 if(!error) { 
                     showSuccessModal("Selesai", "Ahli telah berjaya ditambah");
-                    
                     toggleMemberConfigModal(false);
                     loadDataFromSupabase(); 
+                } else {
+                    alert("Gagal tambah ahli: " + error.message);
                 }
             }
         }
@@ -1008,8 +1038,17 @@
             });
         }
         
+        let lastActivityTime = 0; 
+        
         function resetAfkTimer() {
             if (!isAdmin) return;
+        
+            const now = Date.now();
+            // Jika aktiviti berlaku kurang dari 1 saat (1000ms) dari yang sebelumnya, abaikan.
+            // Ini mengelakkan CPU 'spamming' semasa user scroll laju.
+            if (now - lastActivityTime < 1000) return;
+        
+            lastActivityTime = now; // Kemaskini masa terakhir
         
             clearTimeout(afkTimer);
             
@@ -1019,7 +1058,6 @@
                 await handleLogout();
                 
                 const modal = document.getElementById('logoutSuccessModal');
-                // Pastikan modal wujud sebelum ubah text (elak error)
                 if (modal) {
                     const title = modal.querySelector('h3');
                     const desc = modal.querySelector('p');
