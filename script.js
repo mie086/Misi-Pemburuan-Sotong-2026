@@ -456,11 +456,17 @@
         }
 
         function formatCurrency(num) { 
-            return num.toLocaleString('ms-MY', { 
+            const val = parseFloat(num); // Pastikan ia nombor
+            
+            // Semak jika ia nombor bulat (contoh: 50.00 dikira integer)
+            const isWhole = Number.isInteger(val);
+        
+            return val.toLocaleString('ms-MY', { 
                 style: 'currency', 
                 currency: 'MYR',
-                minimumFractionDigits: 0, // Boleh ubah ke 2 jika mahu sen
-                maximumFractionDigits: 0  
+                // Logik: Jika nombor bulat, guna 0 digit. Jika tidak, guna 2 digit.
+                minimumFractionDigits: isWhole ? 0 : 2,
+                maximumFractionDigits: isWhole ? 0 : 2
             }); 
         }
         function renderTable() {
@@ -1044,29 +1050,17 @@
             if (!isAdmin) return;
         
             const now = Date.now();
-            // Jika aktiviti berlaku kurang dari 1 saat (1000ms) dari yang sebelumnya, abaikan.
-            // Ini mengelakkan CPU 'spamming' semasa user scroll laju.
             if (now - lastActivityTime < 1000) return;
-        
-            lastActivityTime = now; // Kemaskini masa terakhir
+            lastActivityTime = now;
         
             clearTimeout(afkTimer);
             
             afkTimer = setTimeout(async () => {
                 console.log("Auto-logout triggered due to inactivity.");
                 
-                await handleLogout();
+                await supabaseClient.auth.signOut();
                 
-                const modal = document.getElementById('logoutSuccessModal');
-                if (modal) {
-                    const title = modal.querySelector('h3');
-                    const desc = modal.querySelector('p');
-                    
-                    if(title) title.innerText = "Sesi Tamat";
-                    if(desc) desc.innerText = "Anda telah dilog keluar kerana tidak aktif selama 3 minit.";
-                }
-        
-                openLogoutSuccessModal();
+                openAfkLogoutModal();
         
             }, AFK_LIMIT);
         }
@@ -1194,5 +1188,31 @@
                 modal.classList.add('hidden'); 
                 // Optional: Reload page jika perlu reset sambungan
                 // location.reload(); 
+            }, 300);
+        }
+
+        function openAfkLogoutModal() {
+            const modal = document.getElementById('afkLogoutModal');
+            const content = modal.querySelector('div');
+        
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+        
+        function closeAfkLogoutModal() {
+            const modal = document.getElementById('afkLogoutModal');
+            const content = modal.querySelector('div');
+        
+            // Animasi keluar
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
             }, 300);
         }
