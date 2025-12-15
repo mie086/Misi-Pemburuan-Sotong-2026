@@ -46,14 +46,11 @@
         
             await loadDataFromSupabase(); 
         
-            // --- MULA: KOD AUTH BARU (GANTIKAN DI SINI) ---
-            // Fungsi ini akan berjalan automatik setiap kali user Login atau Logout
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 
-                // Jika session wujud, isAdmin jadi true. Jika null, jadi false.
                 isAdmin = !!session; 
                 
-                updateAdminUI(); // Terus update butang (tunjuk/sorok)
+                updateAdminUI();
                 
                 if (isAdmin) {
                     console.log("Admin dikesan. Timer bermula.");
@@ -63,9 +60,7 @@
                     stopAutoLogoutTimer();
                 }
             });
-            // --- TAMAT: KOD AUTH BARU ---
-            
-            // Kod Toast (kekal sama)
+
             setTimeout(() => {
                 const toast = document.getElementById('paymentToast');
                 if(toast) {
@@ -117,19 +112,21 @@
             document.getElementById('logoutModal').classList.add('hidden');
         }
         
-        function openLogoutSuccessModal() {
+        function openLogoutSuccessModal(autoClose = true) {
             const modal = document.getElementById('logoutSuccessModal');
-            const content = modal.querySelector('div'); 
-            
+            const content = modal.querySelector('div');
+        
             modal.classList.remove('hidden');
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 content.classList.remove('scale-95');
                 content.classList.add('scale-100');
-                    }, 10);
-                
-                    setTimeout(() => closeLogoutSuccessModal(), 3000);
-                }
+            }, 10);
+        
+            if (autoClose) {
+                setTimeout(() => closeLogoutSuccessModal(), 3000);
+            }
+        }
         
         function closeLogoutSuccessModal() {
             const modal = document.getElementById('logoutSuccessModal');
@@ -166,6 +163,32 @@
         }
         
 
+        async function handleLogout(showModal = true) {
+            const { error } = await supabaseClient.auth.signOut();
+            
+            closeLogoutModal(); 
+            const modal = document.getElementById('logoutSuccessModal');
+            
+            if (modal) {
+                const title = modal.querySelector('h3');
+                const desc = modal.querySelector('p');
+                if(title) title.innerText = "Berjaya Log Keluar!";
+                if(desc) desc.innerText = "Sesi anda telah ditamatkan";
+                
+                const iconDiv = modal.querySelector('.w-16');
+                if(iconDiv) {
+                     iconDiv.className = "bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600 animate-bounce";
+                     iconDiv.innerHTML = '<i class="fa-solid fa-check text-2xl"></i>';
+                }
+            }
+            
+            if (showModal) {
+                openLogoutSuccessModal(true); 
+            }
+            
+            if (error) console.warn("Logout server response:", error.message);
+        }
+
         async function handleLogin(e) {
             e.preventDefault();
             
@@ -174,11 +197,9 @@
             const btn = document.getElementById('btnLoginSubmit');
             const errorMsg = document.getElementById('loginErrorMsg');
         
-            // --- LOGIK BLOKER (MULA) ---
             const MAX_ATTEMPTS = 3;
-            const BLOCK_DURATION = 60 * 1000; // 60 saat (1 minit)
+            const BLOCK_DURATION = 60 * 1000; 
         
-            // Periksa jika pengguna sedang diblock
             const blockUntil = localStorage.getItem('loginBlockUntil');
             if (blockUntil) {
                 const timeLeft = parseInt(blockUntil) - Date.now();
@@ -186,26 +207,21 @@
                     const secondsLeft = Math.ceil(timeLeft / 1000);
                     errorMsg.innerHTML = `<i class="fa-solid fa-hand"></i> Sila tunggu ${secondsLeft} saat lagi.`;
                     errorMsg.classList.remove('hidden');
-                    errorMsg.classList.replace('text-red-500', 'text-orange-600'); // Tukar warna amaran
+                    errorMsg.classList.replace('text-red-500', 'text-orange-600'); 
                     errorMsg.classList.replace('bg-red-50', 'bg-orange-50');
-                    return; // Hentikan fungsi di sini
+                    return; 
                 } else {
-                    // Masa block dah tamat, reset storage
                     localStorage.removeItem('loginBlockUntil');
                     localStorage.removeItem('loginAttempts');
                 }
             }
-            // --- LOGIK BLOKER (TAMAT) ---
-        
-            // UI Loading
+
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
             btn.disabled = true;
             errorMsg.classList.add('hidden');
-            // Reset warna error kepada merah (jika sebelum ini oren)
             errorMsg.classList.replace('text-orange-600', 'text-red-500');
             errorMsg.classList.replace('bg-orange-50', 'bg-red-50');
         
-            // Cuba Login ke Supabase
             const { data, error } = await supabaseClient.auth.signInWithPassword({
                 email: email,
                 password: password,
@@ -214,14 +230,12 @@
             if (error) {
                 console.error("Login Error:", error);
                 
-                // --- KIRA PERCUBAAN GAGAL (MULA) ---
                 let attempts = parseInt(localStorage.getItem('loginAttempts') || '0') + 1;
                 localStorage.setItem('loginAttempts', attempts);
         
                 let msg = "Email atau password salah.";
         
                 if (attempts >= MAX_ATTEMPTS) {
-                    // Set masa block
                     const releaseTime = Date.now() + BLOCK_DURATION;
                     localStorage.setItem('loginBlockUntil', releaseTime);
                     msg = `Terlalu banyak percubaan! <br>Sila tunggu 1 minit.`;
@@ -229,26 +243,20 @@
                     const left = MAX_ATTEMPTS - attempts;
                     msg = `Salah. Tinggal <b>${left}</b> kali percubaan lagi.`;
                 }
-                // --- KIRA PERCUBAAN GAGAL (TAMAT) ---
-        
+
                 btn.innerHTML = 'Log Masuk <i class="fa-solid fa-arrow-right"></i>';
                 btn.disabled = false;
                 errorMsg.innerHTML = msg;
                 errorMsg.classList.remove('hidden');
         
             } else {
-                // BERJAYA LOG IN
-                // Reset semua rekod percubaan sebab dah berjaya
                 localStorage.removeItem('loginAttempts');
                 localStorage.removeItem('loginBlockUntil');
         
-                // Note: Kita tak perlu set isAdmin = true di sini lagi 
-                // sebab listener 'onAuthStateChange' (yang kita buat tadi) akan uruskan.
-                
+
                 closeLoginModal();
                 openLoginSuccessModal();
                 
-                // Reset Form
                 btn.innerHTML = 'Log Masuk <i class="fa-solid fa-arrow-right"></i>';
                 btn.disabled = false;
                 document.getElementById('adminEmail').value = '';
@@ -459,7 +467,7 @@
             return num.toLocaleString('ms-MY', { 
                 style: 'currency', 
                 currency: 'MYR',
-                minimumFractionDigits: 0, // Boleh ubah ke 2 jika mahu sen
+                minimumFractionDigits: 0,
                 maximumFractionDigits: 0  
             }); 
         }
@@ -476,7 +484,7 @@
             let totalCollected = 0;
             
             sortedMembers.forEach(m => {
-                totalCollected += parseFloat(m.paid); // Pastikan nombor
+                totalCollected += parseFloat(m.paid);
                 
                 const pct = Math.min(100, (m.paid / TARGET_PER_PERSON) * 100);
                 const safeName = escapeHtml(m.name);
@@ -617,11 +625,11 @@
             const icon = element.querySelector('.fa-chevron-down');
         
             if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden'); // Buka
-                icon.classList.add('rotate-180');   // Pusing panah ke atas
+                content.classList.remove('hidden'); 
+                icon.classList.add('rotate-180');   
             } else {
-                content.classList.add('hidden');    // Tutup
-                icon.classList.remove('rotate-180');// Pusing panah ke bawah
+                content.classList.add('hidden');   
+                icon.classList.remove('rotate-180');
             }
         }
 
@@ -709,7 +717,7 @@
             document.getElementById('paymentBoxTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-600"></i> <span class="text-amber-700">Kemaskini Rekod Ini</span>`;
             document.getElementById('btnCancelHistoryEdit').classList.remove('hidden');
             
-            document.getElementById('editHistoryIndex').value = index; // Set Index!
+            document.getElementById('editHistoryIndex').value = index; 
             document.getElementById('initPayAmount').value = item.amount;
             
             const [d, M, y] = item.date.split('-');
@@ -741,8 +749,8 @@
         
             const formatDate = (isoDateString) => {
                 const d = new Date(isoDateString);
-                const day = d.getDate().toString().padStart(2, '0');   // Tambah '0' jika < 10
-                const month = (d.getMonth() + 1).toString().padStart(2, '0'); // Tambah '0' jika < 10
+                const day = d.getDate().toString().padStart(2, '0'); 
+                const month = (d.getMonth() + 1).toString().padStart(2, '0'); 
                 const year = d.getFullYear();
                 return `${day}-${month}-${year}`;
             };
@@ -785,7 +793,7 @@
                 let paid = 0;
                 
                 if (amountVal > 0) {
-                    const dateStr = formatDate(dateInput); // Guna helper function
+                    const dateStr = formatDate(dateInput);
                     history.push({ date: dateStr, amount: amountVal });
                     paid = amountVal;
                 }
@@ -910,20 +918,20 @@
             document.getElementById('expDetail').value = e.detail;
             document.getElementById('expAmount').value = e.amount;
             
-            document.getElementById('btnDeleteExp').classList.remove('hidden'); // Tunjuk butang delete!
+            document.getElementById('btnDeleteExp').classList.remove('hidden'); 
         }
         
         async function submitExpense(e) {
             e.preventDefault();
             const id = document.getElementById('expId').value;
-            const dateInput = document.getElementById('expDate').value; // yyyy-mm-dd
+            const dateInput = document.getElementById('expDate').value;
             const category = document.getElementById('expCategory').value;
             const detail = document.getElementById('expDetail').value;
             const amount = parseFloat(document.getElementById('expAmount').value);
         
             const d = new Date(dateInput);
-            const day = d.getDate().toString().padStart(2, '0');   // 2 -> 02
-            const month = (d.getMonth() + 1).toString().padStart(2, '0'); // 1 -> 01
+            const day = d.getDate().toString().padStart(2, '0');
+            const month = (d.getMonth() + 1).toString().padStart(2, '0');
             const year = d.getFullYear();
             
             const dateStr = `${day}-${month}-${year}`;
@@ -984,9 +992,6 @@
         const AFK_LIMIT = 3 * 60 * 1000;
         
         function startAutoLogoutTimer() {
-            // Kita guna senarai event yang penting sahaja.
-            // 'mousemove' dibuang untuk elak lag.
-            // { passive: true } menjadikan scroll lebih lancar di mobile.
             const events = ['click', 'keypress', 'touchstart', 'scroll'];
             
             events.forEach(evt => {
@@ -999,8 +1004,6 @@
         function stopAutoLogoutTimer() {
             clearTimeout(afkTimer);
             
-            // Kita perlu "bersihkan" event listener bila user logout
-            // Supaya browser tak terus memantau walaupun dah tak perlu
             const events = ['click', 'keypress', 'touchstart', 'scroll'];
             
             events.forEach(evt => {
@@ -1016,19 +1019,24 @@
             afkTimer = setTimeout(async () => {
                 console.log("Auto-logout triggered due to inactivity.");
                 
-                await handleLogout();
+                await handleLogout(false);
                 
                 const modal = document.getElementById('logoutSuccessModal');
-                // Pastikan modal wujud sebelum ubah text (elak error)
                 if (modal) {
                     const title = modal.querySelector('h3');
                     const desc = modal.querySelector('p');
+                    const iconDiv = modal.querySelector('.w-16');
                     
-                    if(title) title.innerText = "Sesi Tamat";
-                    if(desc) desc.innerText = "Anda telah dilog keluar kerana tidak aktif selama 3 minit.";
+                    if(title) title.innerText = "Sesi Tamat (AFK)";
+                    if(desc) desc.innerText = "Anda telah dilog keluar kerana tidak aktif melebihi 3 minit.";
+        
+                    if(iconDiv) {
+                        iconDiv.className = "bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600 animate-pulse";
+                        iconDiv.innerHTML = '<i class="fa-solid fa-hourglass-end text-2xl"></i>';
+                    }
                 }
         
-                openLogoutSuccessModal();
+                openLogoutSuccessModal(false);
         
             }, AFK_LIMIT);
         }
@@ -1118,7 +1126,7 @@
                         .eq('id', memberId);
         
                     if (!error) {
-                        showSuccessModal("Selesai", "Rekod bayaran dipadam.");
+                        showSuccessModal("Selesai", "Rekod bayaran dipadam");
         
                         toggleMemberConfigModal(false); 
         
@@ -1135,7 +1143,6 @@
             const content = modal.querySelector('div');
             
             modal.classList.remove('hidden');
-            // Animasi masuk
             setTimeout(() => {
                 modal.classList.remove('opacity-0');
                 content.classList.remove('scale-95');
@@ -1147,14 +1154,11 @@
             const modal = document.getElementById('databaseErrorModal');
             const content = modal.querySelector('div');
             
-            // Animasi keluar
             modal.classList.add('opacity-0');
             content.classList.remove('scale-100');
             content.classList.add('scale-95');
             
             setTimeout(() => { 
                 modal.classList.add('hidden'); 
-                // Optional: Reload page jika perlu reset sambungan
-                // location.reload(); 
             }, 300);
         }
