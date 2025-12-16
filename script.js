@@ -1,3 +1,4 @@
+
         const SUPABASE_URL = 'https://twbmjojqyhmjsoywiqrs.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3Ym1qb2pxeWhtanNveXdpcXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ5MzUyODUsImV4cCI6MjA4MDUxMTI4NX0._Q3peI3s04DuBHyHE3qUl-OzcagrbpWdP2-QIid3agY';
         
@@ -484,8 +485,9 @@
                         </td>
                         <td class="p-3 text-center font-mono text-emerald-600 font-bold">${formatCurrency(m.paid)}</td>
                         <td class="p-3 text-center">
-                            <button onclick="openDetails(${m.id})" class="text-blue-400 hover:text-blue-600">
-                                <i class="fa-solid fa-receipt"></i>
+                            <button onclick="openDetails(${m.id})" class="mt-1 inline-flex items-center gap-1 cursor-pointer text-blue-500 hover:text-blue-700 transition group">
+                                <i class="fa-solid fa-receipt text-lg group-hover:scale-110 transition-transform"></i>
+                                <span class="text-[9px] font-medium underline decoration-dotted">Lihat</span>
                             </button>
                         </td>
                     </tr>`;
@@ -558,14 +560,14 @@
                     receiptIcon = `
                         <div onclick="viewReceipt('${e.receipt_url}')" class="mt-1 inline-flex items-center gap-1 cursor-pointer text-blue-500 hover:text-blue-700 transition group">
                             <i class="fa-solid fa-receipt text-lg group-hover:scale-110 transition-transform"></i>
-                            <span class="text-[9px] font-medium underline decoration-dotted">Lihat Resit</span>
+                            <span class="text-[9px] font-medium underline decoration-dotted">Lihat</span>
                         </div>
                     `;
                 } else {
                     receiptIcon = `
                         <div onclick="showNoReceiptModal()" class="mt-1 inline-flex items-center gap-1 cursor-pointer text-blue-500 hover:text-blue-700 transition group">
                             <i class="fa-solid fa-receipt text-lg group-hover:scale-110 transition-transform"></i>
-                            <span class="text-[9px] font-medium underline decoration-dotted">Lihat Resit</span>
+                            <span class="text-[9px] font-medium underline decoration-dotted">Lihat</span>
                         </div>
                     `;
                 }
