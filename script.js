@@ -275,8 +275,10 @@
             renderExpenses();  
         }
 
-        const TARGET_PER_PERSON = 500;
-        const FIXED_TARGET = 5000;
+        const DEFAULT_TARGET = 500;
+        const SPECIAL_TARGET = 250;
+        const SPECIAL_MEMBER = 'Rosddi';
+        const FIXED_TARGET = 4750;
         const DEADLINE = new Date('2026-05-01');
     
         function escapeHtml(text) {
@@ -464,7 +466,12 @@
             sortedMembers.forEach(m => {
                 totalCollected += parseFloat(m.paid);
                 
-                const pct = Math.min(100, (m.paid / TARGET_PER_PERSON) * 100);
+                let memberTarget = (m.name.toLowerCase() === SPECIAL_MEMBER.toLowerCase()) 
+                                           ? SPECIAL_TARGET 
+                                           : DEFAULT_TARGET;
+            
+                const pct = Math.min(100, (m.paid / memberTarget) * 100);
+                
                 const safeName = escapeHtml(m.name);
                 
                 let adminBtn = '';
