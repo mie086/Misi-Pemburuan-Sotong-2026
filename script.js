@@ -466,12 +466,27 @@
             sortedMembers.forEach(m => {
                 totalCollected += parseFloat(m.paid);
                 
+                // 1. Tentukan target individu 
+                const SPECIAL_MEMBER = 'Rosddi';
                 let memberTarget = (m.name.toLowerCase() === SPECIAL_MEMBER.toLowerCase()) 
-                                           ? SPECIAL_TARGET 
-                                           : DEFAULT_TARGET;
-            
-                const pct = Math.min(100, (m.paid / memberTarget) * 100);
+                                   ? 250 
+                                   : 500;
+        
+                // 2. Kira peratusan untuk panjang palang
+                const barPct = Math.min(100, (m.paid / memberTarget) * 100);
                 
+                // 3. Logik untuk kesan lebihan bayaran
+                let textPeratus = Math.round((m.paid / memberTarget) * 100) + '%';
+                let labelSumbangan = ''; // Pembolehubah ditukar nama untuk kejelasan
+                
+                if (m.paid > memberTarget) {
+                    const lebihan = m.paid - memberTarget;
+                    textPeratus = '100%'; 
+                    
+                    // Terma ditukar kepada "Sumbangan" di sini
+                    labelSumbangan = `<div class="text-[9px] font-bold text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded mt-1 border border-emerald-200 inline-block">+${formatCurrency(lebihan)} T-Shirt</div>`;
+                }
+
                 const safeName = escapeHtml(m.name);
                 
                 let adminBtn = '';
@@ -479,6 +494,7 @@
                     adminBtn = `<i onclick="editMemberConfig(${m.id})" class="fa-solid fa-pen-to-square text-[10px] ml-2 text-gray-300 hover:text-blue-500 cursor-pointer" title="Urus Ahli"></i>`;
                 }
         
+                // 4. Masukkan variabel labelSumbangan ke dalam HTML
                 htmlContent += `
                     <tr class="border-b border-gray-50 hover:bg-gray-50">
                         <td class="p-3 font-bold text-gray-700 flex items-center">
@@ -486,9 +502,10 @@
                         </td>
                         <td class="p-3 text-center">
                             <div class="w-16 mx-auto bg-gray-200 rounded-full h-1">
-                                <div class="bg-emerald-500 h-1 rounded-full" style="width:${pct}%"></div>
+                                <div class="bg-emerald-500 h-1 rounded-full" style="width:${barPct}%"></div>
                             </div>
-                            <div class="text-[10px] text-gray-400">${Math.round(pct)}%</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5">${textPeratus}</div>
+                            ${labelSumbangan} 
                         </td>
                         <td class="p-3 text-center font-mono text-emerald-600 font-bold">${formatCurrency(m.paid)}</td>
                         <td class="p-3 text-center">
