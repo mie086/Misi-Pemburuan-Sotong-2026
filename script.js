@@ -5,11 +5,8 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let isAdmin = false;
 
-// --- CONFIG TARIKH & TARGET ---
-const DEFAULT_TARGET = 500;       
-const SPECIAL_TARGET = 250;       
-const SPECIAL_MEMBER = 'Rosddi';  
-const FIXED_TARGET = 4750;        
+// --- CONFIG TARIKH & TARGET KESELURUHAN ---
+let dynamicFixedTarget = 4750;        
 const DEADLINE = new Date('2027-06-05'); 
 
 // --- STATE MANAGEMENT ---
@@ -18,6 +15,7 @@ let expenses = [];
 let tentativeList = [];
 let checklistList = [];
 let showTentativeWarning = true;
+let showChecklistWarning = true;
 
 async function loadDataFromSupabase() {
     console.log("Sedang menarik data dari Supabase...");
@@ -43,6 +41,13 @@ async function loadDataFromSupabase() {
 
         if (errorTentative) throw errorTentative;
 
+        let { data: checklistData, error: errorChecklist } = await supabaseClient
+            .from('checklist')
+            .select('*')
+            .order('sort_order', { ascending: true });
+
+        if (errorChecklist) throw errorChecklist;
+
         let { data: settingsData, error: errorSettings } = await supabaseClient
             .from('app_settings')
             .select('*');
@@ -50,14 +55,13 @@ async function loadDataFromSupabase() {
         if (settingsData) {
             let warningSetting = settingsData.find(s => s.setting_key === 'show_tentative_warning');
             if (warningSetting) showTentativeWarning = warningSetting.setting_value === 'true';
+
+            let chkWarningSetting = settingsData.find(s => s.setting_key === 'show_checklist_warning');
+            if (chkWarningSetting) showChecklistWarning = chkWarningSetting.setting_value === 'true';
+
+            let totalTargetSetting = settingsData.find(s => s.setting_key === 'total_target');
+            if (totalTargetSetting) dynamicFixedTarget = parseFloat(totalTargetSetting.setting_value);
         }
-
-        let { data: checklistData, error: errorChecklist } = await supabaseClient
-            .from('checklist')
-            .select('*')
-            .order('sort_order', { ascending: true });
-
-        if (errorChecklist) throw errorChecklist;
 
         if (membersData) members = membersData;
         if (expensesData) expenses = expensesData;
@@ -69,6 +73,7 @@ async function loadDataFromSupabase() {
         renderTentative();
         renderTentativeWarning();
         renderChecklist();
+        renderChecklistWarning();
         
         console.log("Data berjaya dikemaskini!");
 
@@ -284,17 +289,23 @@ function updateAdminUI() {
     const dot = document.getElementById('loginStatusDot');
     const fab = document.getElementById('adminFab');
     const btnWarning = document.getElementById('btnToggleWarning');
+    const btnChkWarning = document.getElementById('btnToggleChecklistWarning');
+    const btnEditTarget = document.getElementById('btnEditTarget');
 
     if (isAdmin) {
         if(dot) dot.classList.remove('hidden'); 
         if(fab) fab.classList.remove('hidden'); 
         if(fab) fab.classList.add('flex');
         if(btnWarning) btnWarning.classList.remove('hidden');
+        if(btnChkWarning) btnChkWarning.classList.remove('hidden');
+        if(btnEditTarget) btnEditTarget.classList.remove('hidden');
     } else {
         if(dot) dot.classList.add('hidden'); 
         if(fab) fab.classList.add('hidden'); 
         if(fab) fab.classList.remove('flex');
         if(btnWarning) btnWarning.classList.add('hidden');
+        if(btnChkWarning) btnChkWarning.classList.add('hidden');
+        if(btnEditTarget) btnEditTarget.classList.add('hidden');
     }
 
     renderTable();     
@@ -302,6 +313,7 @@ function updateAdminUI() {
     renderTentative();
     renderTentativeWarning();
     renderChecklist();
+    renderChecklistWarning();
 }
 
 function escapeHtml(text) {
@@ -428,7 +440,7 @@ function renderTable() {
 
     const targetDisplay = document.getElementById('totalTargetDisplay');
     if (targetDisplay) {
-        targetDisplay.innerText = formatCurrency(FIXED_TARGET);
+        targetDisplay.innerText = formatCurrency(dynamicFixedTarget);
     }
 
     const sortedMembers = [...members].sort((a,b) => b.paid - a.paid);
@@ -439,33 +451,40 @@ function renderTable() {
     sortedMembers.forEach(m => {
         totalCollected += parseFloat(m.paid);
         
-        let sumbanganTotal = 0;
-        let tambahanTotal = 0;
         let asasTotal = 0;
+        let lainLainTotals = {}; 
 
         if (m.history && m.history.length > 0) {
             m.history.forEach(h => {
                 const amt = parseFloat(h.amount);
-                if (h.type === 'Sumbangan') sumbanganTotal += amt;
-                else if (h.type === 'Bayaran Tambahan') tambahanTotal += amt;
-                else asasTotal += amt; 
+                const type = h.type || 'Bayaran Asas';
+                
+                if (type === 'Bayaran Asas' || type === 'Bayaran Asas (Target)') {
+                    asasTotal += amt;
+                } else {
+                    if (!lainLainTotals[type]) lainLainTotals[type] = 0;
+                    lainLainTotals[type] += amt;
+                }
             });
         } else {
             asasTotal = parseFloat(m.paid); 
         }
 
-        let memberTarget = (m.name.toLowerCase() === SPECIAL_MEMBER.toLowerCase()) ? SPECIAL_TARGET : DEFAULT_TARGET;
+        let memberTarget = m.target !== undefined && m.target !== null ? parseFloat(m.target) : 500;
+        if (memberTarget <= 0) memberTarget = 1; 
 
         const barPct = Math.min(100, (asasTotal / memberTarget) * 100);
         let textPeratus = Math.round((asasTotal / memberTarget) * 100) + '%';
         
         let lencanaTambahan = '';
         
-        if (sumbanganTotal > 0) {
-            lencanaTambahan += `<div class="text-[9px] font-bold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded mt-1 border border-blue-200 inline-block mr-1"><i class="fa-solid fa-hand-holding-heart mr-1"></i>+${formatCurrency(sumbanganTotal)} Sumbangan</div>`;
-        }
-        if (tambahanTotal > 0) {
-            lencanaTambahan += `<div class="text-[9px] font-bold text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded mt-1 border border-purple-200 inline-block"><i class="fa-solid fa-boxes-packing mr-1"></i>+${formatCurrency(tambahanTotal)} Tambahan</div>`;
+        const colors = ['blue', 'purple', 'rose', 'amber'];
+        let colorIndex = 0;
+        
+        for (const [customType, customAmt] of Object.entries(lainLainTotals)) {
+            const theme = colors[colorIndex % colors.length]; 
+            lencanaTambahan += `<div class="text-[9px] font-bold text-${theme}-600 bg-${theme}-100 px-1.5 py-0.5 rounded mt-1 border border-${theme}-200 inline-block mr-1 mb-1">+${formatCurrency(customAmt)} ${escapeHtml(customType)}</div>`;
+            colorIndex++;
         }
 
         const safeName = escapeHtml(m.name);
@@ -501,7 +520,7 @@ function renderTable() {
 
     document.getElementById('tableSummaryCollected').innerText = formatCurrency(totalCollected);
 
-    const globalPct = Math.min(100, (totalCollected / FIXED_TARGET) * 100);
+    const globalPct = Math.min(100, (totalCollected / dynamicFixedTarget) * 100);
     
     const progressBar = document.getElementById('tableSummaryProgress');
     if(progressBar) progressBar.style.width = globalPct + '%';
@@ -632,6 +651,7 @@ function updateExpensesSummary(totalCollected) {
 
 function toggleContactModal() { document.getElementById('adminContactModal').classList.toggle('hidden'); }
 
+// --- FUNGSI TENTATIF ---
 function toggleTentative(element) {
     const content = element.nextElementSibling || element.parentElement.querySelector('.tentative-body');
     const icon = element.querySelector('.fa-chevron-down');
@@ -817,7 +837,7 @@ function deleteTentative() {
     );
 }
 
-// --- FUNGSI CHECKLIST DINAMIK ---
+// --- FUNGSI CHECKLIST ---
 function renderChecklist() {
     const container = document.getElementById('checklistContainer');
     if (!container) return;
@@ -884,6 +904,36 @@ function toggleChecklistCategory(el) {
     } else {
         body.classList.add('hidden');
         if (icon) icon.classList.remove('rotate-180');
+    }
+}
+
+function renderChecklistWarning() {
+    const warningEl = document.getElementById('checklistWarningText');
+    const btnIcon = document.querySelector('#btnToggleChecklistWarning i');
+    
+    if (warningEl) {
+        if (showChecklistWarning) {
+            warningEl.classList.remove('hidden');
+            if(btnIcon) btnIcon.className = 'fa-solid fa-eye';
+        } else {
+            warningEl.classList.add('hidden');
+            if(btnIcon) btnIcon.className = 'fa-solid fa-eye-slash text-red-400';
+        }
+    }
+}
+
+async function toggleChecklistWarning() {
+    showChecklistWarning = !showChecklistWarning;
+    renderChecklistWarning(); 
+
+    const { error } = await supabaseClient
+        .from('app_settings')
+        .upsert({ setting_key: 'show_checklist_warning', setting_value: showChecklistWarning.toString() });
+    
+    if (error) {
+        alert("Gagal mengemaskini tetapan: " + error.message);
+        showChecklistWarning = !showChecklistWarning;
+        renderChecklistWarning();
     }
 }
 
@@ -975,10 +1025,27 @@ function deleteChecklist() {
         }
     );
 }
-// --- TAMAT FUNGSI CHECKLIST DINAMIK ---
+
+// --- FUNGSI TABUNG / AHLI (DIASINGKAN) ---
+function toggleOtherPayType() {
+    const select = document.getElementById('initPayType');
+    const container = document.getElementById('otherPayTypeContainer');
+    const input = document.getElementById('initPayOther');
+    
+    if (select && container && input) {
+        if (select.value === 'Lain-lain') {
+            container.classList.remove('hidden');
+            input.focus();
+        } else {
+            container.classList.add('hidden');
+            input.value = '';
+        }
+    }
+}
 
 function toggleMemberConfigModal(show) {
     const modal = document.getElementById('memberConfigModal');
+    if (!modal) return;
     const content = modal.querySelector('div');
     
     if(show) {
@@ -986,20 +1053,17 @@ function toggleMemberConfigModal(show) {
         modal.classList.remove('hidden');
         setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.add('scale-100'); }, 10);
         
-        document.getElementById('memberModalTitle').innerHTML = "Tambah Ahli";
-        document.getElementById('btnSaveMember').innerHTML = '<i class="fa-solid fa-user-plus"></i> Tambah'; 
+        document.getElementById('memberModalTitle').innerHTML = "Tambah Ahli Baru";
+        document.getElementById('btnSaveProfile').innerHTML = 'Simpan Ahli'; 
         
         document.getElementById('configMemberId').value = '';
         document.getElementById('configMemberName').value = '';
+        document.getElementById('configMemberTarget').value = '500';
+        
+        document.getElementById('paymentSectionWrapper').classList.add('hidden');
+        document.getElementById('btnDeleteMember').classList.add('hidden');
         
         cancelHistoryEdit();
-        
-        const payTypeEl = document.getElementById('initPayType');
-        if(payTypeEl) payTypeEl.value = 'Bayaran Asas';
-
-        document.getElementById('btnDeleteMember').classList.add('hidden');
-        document.getElementById('memberHistorySection').classList.add('hidden');
-
     } else {
         unlockScroll();
         modal.classList.add('opacity-0');
@@ -1015,10 +1079,13 @@ function editMemberConfig(id) {
     toggleMemberConfigModal(true);
     
     document.getElementById('memberModalTitle').innerHTML = "Urus Ahli";
-    document.getElementById('btnSaveMember').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Kemaskini';
+    document.getElementById('btnSaveProfile').innerHTML = 'Kemaskini Profil';
     
     document.getElementById('configMemberId').value = m.id;
     document.getElementById('configMemberName').value = m.name;
+    document.getElementById('configMemberTarget').value = m.target !== undefined && m.target !== null ? m.target : 500;
+    
+    document.getElementById('paymentSectionWrapper').classList.remove('hidden');
     document.getElementById('btnDeleteMember').classList.remove('hidden');
 
     renderMemberHistoryInModal(m);
@@ -1033,7 +1100,7 @@ function renderMemberHistoryInModal(member) {
         container.innerHTML = '';
         
         member.history.forEach((h, index) => {
-            const displayType = h.type ? `<span class="block text-[9px] text-gray-400 mt-0.5">${h.type}</span>` : '';
+            const displayType = h.type ? `<span class="block text-[9px] text-gray-400 mt-0.5">${escapeHtml(h.type)}</span>` : '';
             container.innerHTML += `
                 <div class="flex justify-between items-center bg-gray-50 p-2 rounded border border-gray-100 hover:bg-blue-50 transition">
                     <div>
@@ -1042,10 +1109,10 @@ function renderMemberHistoryInModal(member) {
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-emerald-600">RM${h.amount}</span>
-                        <button onclick="prepareEditHistoryItem(${member.id}, ${index})" class="text-blue-400 hover:text-blue-600 ml-2 bg-white p-1 rounded border border-blue-100 shadow-sm" title="Edit">
+                        <button type="button" onclick="prepareEditHistoryItem(${member.id}, ${index})" class="text-blue-400 hover:text-blue-600 ml-2 bg-white p-1 rounded border border-blue-100 shadow-sm" title="Edit">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <button onclick="deletePaymentHistoryItem(${member.id}, ${index})" class="text-red-400 hover:text-red-600 bg-white p-1 rounded border border-red-100 shadow-sm" title="Padam">
+                        <button type="button" onclick="deletePaymentHistoryItem(${member.id}, ${index})" class="text-red-400 hover:text-red-600 bg-white p-1 rounded border border-red-100 shadow-sm" title="Padam">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -1070,8 +1137,22 @@ function prepareEditHistoryItem(memberId, index) {
     document.getElementById('editHistoryIndex').value = index; 
     document.getElementById('initPayAmount').value = item.amount;
     
+    const currentType = item.type || 'Bayaran Asas';
     const payTypeEl = document.getElementById('initPayType');
-    if (payTypeEl) payTypeEl.value = item.type || 'Bayaran Asas';
+    const otherPayContainer = document.getElementById('otherPayTypeContainer');
+    const otherPayInput = document.getElementById('initPayOther');
+
+    if (payTypeEl) {
+        if (currentType === 'Bayaran Asas' || currentType === 'Bayaran Asas (Target)') {
+            payTypeEl.value = 'Bayaran Asas';
+            if (otherPayContainer) otherPayContainer.classList.add('hidden');
+            if (otherPayInput) otherPayInput.value = '';
+        } else {
+            payTypeEl.value = 'Lain-lain';
+            if (otherPayContainer) otherPayContainer.classList.remove('hidden');
+            if (otherPayInput) otherPayInput.value = currentType;
+        }
+    }
 
     const [d, M, y] = item.date.split('-');
     document.getElementById('initPayDate').value = `${y}-${M.padStart(2,'0')}-${d.padStart(2,'0')}`;
@@ -1080,31 +1161,89 @@ function prepareEditHistoryItem(memberId, index) {
 }
 
 function cancelHistoryEdit() {
-    document.getElementById('paymentBoxContainer').classList.replace('bg-amber-50', 'bg-emerald-50');
-    document.getElementById('paymentBoxContainer').classList.replace('border-amber-100', 'border-emerald-100');
+    const box = document.getElementById('paymentBoxContainer');
+    if(box) {
+        box.classList.replace('bg-amber-50', 'bg-emerald-50');
+        box.classList.replace('border-amber-100', 'border-emerald-100');
+    }
 
-    document.getElementById('paymentBoxTitle').innerHTML = `<i class="fa-solid fa-plus-circle"></i> Tambah Bayaran`;
-    document.getElementById('btnCancelHistoryEdit').classList.add('hidden');
+    const title = document.getElementById('paymentBoxTitle');
+    if(title) title.innerHTML = `<i class="fa-solid fa-plus-circle"></i> Tambah Bayaran`;
     
-    document.getElementById('editHistoryIndex').value = '';
-    document.getElementById('initPayAmount').value = '';
-    document.getElementById('initPayDate').valueAsDate = new Date();
+    const btnCancel = document.getElementById('btnCancelHistoryEdit');
+    if(btnCancel) btnCancel.classList.add('hidden');
+    
+    const idx = document.getElementById('editHistoryIndex');
+    if(idx) idx.value = '';
+    
+    const amt = document.getElementById('initPayAmount');
+    if(amt) amt.value = '';
+    
+    const date = document.getElementById('initPayDate');
+    if(date) date.valueAsDate = new Date();
     
     const payTypeEl = document.getElementById('initPayType');
     if(payTypeEl) payTypeEl.value = 'Bayaran Asas';
+    const otherPayContainer = document.getElementById('otherPayTypeContainer');
+    if (otherPayContainer) otherPayContainer.classList.add('hidden');
+    const otherPayInput = document.getElementById('initPayOther');
+    if (otherPayInput) otherPayInput.value = '';
 }
 
-async function submitMemberConfig(e) {
-    e.preventDefault();
+// 1. Simpan Profil (Nama & Target SAHAJA)
+async function saveMemberProfile() {
     const id = document.getElementById('configMemberId').value;
-    const name = document.getElementById('configMemberName').value;
-    
+    const name = document.getElementById('configMemberName').value.trim();
+    const targetVal = parseFloat(document.getElementById('configMemberTarget').value) || 500;
+
+    if (!name) {
+        showErrorModal("Ralat", "Sila masukkan nama ahli terlebih dahulu.");
+        return;
+    }
+
+    if (id) {
+        // --- KEMASKINI AHLI SEDIA ADA ---
+        const { error } = await supabaseClient.from('members').update({ name: name, target: targetVal }).eq('id', id);
+        if (!error) {
+            showSuccessModal("Disimpan!", "Profil ahli berjaya dikemaskini.");
+            toggleMemberConfigModal(false); // <--- KOD TAMBAHAN: Tutup modal selepas berjaya kemaskini
+            loadDataFromSupabase(); 
+        } else {
+            showErrorModal("Ralat Sistem", error.message);
+        }
+    } else {
+        // --- TAMBAH AHLI BAHARU ---
+        const { error } = await supabaseClient.from('members').insert([{ name: name, paid: 0, history: [], target: targetVal }]);
+        if (!error) {
+            showSuccessModal("Ditambah!", "Ahli baharu berjaya didaftarkan.");
+            toggleMemberConfigModal(false);
+            loadDataFromSupabase();
+        } else {
+            showErrorModal("Ralat Sistem", error.message);
+        }
+    }
+}
+
+// 2. Simpan Rekod Bayaran SAHAJA
+async function savePaymentRecord() {
+    const id = document.getElementById('configMemberId').value;
+    if (!id) return; 
+
     const amountVal = parseFloat(document.getElementById('initPayAmount').value) || 0;
+    if (amountVal <= 0) {
+        showErrorModal("Ralat", "Sila masukkan jumlah bayaran yang sah (Melebihi RM0).");
+        return;
+    }
+
     const dateInput = document.getElementById('initPayDate').value; 
     const editIndex = document.getElementById('editHistoryIndex').value;
     
     const payTypeEl = document.getElementById('initPayType');
-    const payType = payTypeEl ? payTypeEl.value : 'Bayaran Asas';
+    let payType = payTypeEl ? payTypeEl.value : 'Bayaran Asas';
+    if (payType === 'Lain-lain') {
+        const otherVal = document.getElementById('initPayOther').value.trim();
+        payType = otherVal !== '' ? otherVal : 'Lain-lain';
+    }
 
     const formatDate = (isoDateString) => {
         if (!isoDateString) return new Date().toLocaleDateString('en-GB').replace(/\//g, '-'); 
@@ -1115,87 +1254,48 @@ async function submitMemberConfig(e) {
         return `${day}-${month}-${year}`; 
     };
 
-    if ((amountVal <= 0) && (dateInput || editIndex !== "")) {
-        const amountInput = document.getElementById('initPayAmount');
-        amountInput.setCustomValidity("please fill out this field.");
-        amountInput.reportValidity();
-        amountInput.oninput = function() { this.setCustomValidity(""); };
-        return; 
+    const dateStr = formatDate(dateInput); 
+    
+    const member = members.find(m => m.id == id);
+    let currentHistory = [...(member.history || [])];
+
+    if (editIndex !== "") {
+        const idx = parseInt(editIndex);
+        currentHistory[idx] = { date: dateStr, amount: amountVal, type: payType };
+    } else {
+        currentHistory.push({ date: dateStr, amount: amountVal, type: payType });
     }
 
-    if (id) {
-        const member = members.find(m => m.id == id);
-        let currentHistory = [...(member.history || [])];
-        
-        if (amountVal > 0) {
-            const dateStr = formatDate(dateInput); 
-            
-            if (editIndex !== "") {
-                const idx = parseInt(editIndex);
-                currentHistory[idx] = { date: dateStr, amount: amountVal, type: payType };
-            } else {
-                currentHistory.push({ date: dateStr, amount: amountVal, type: payType });
-            }
-        }
+    const newTotalPaid = currentHistory.reduce((sum, h) => sum + parseFloat(h.amount), 0);
 
-        const newTotalPaid = currentHistory.reduce((sum, h) => sum + parseFloat(h.amount), 0);
-
-        const { error } = await supabaseClient
-            .from('members')
-            .update({ name: name, paid: newTotalPaid, history: currentHistory })
-            .eq('id', id);
-        
-        if(!error) { 
-            showSuccessModal("Disimpan!", "Data ahli & bayaran berjaya dikemaskini");
-            toggleMemberConfigModal(false); 
-            loadDataFromSupabase(); 
-        } else {
-            alert("Gagal: " + error.message);
-        }
-
+    const { error } = await supabaseClient
+        .from('members')
+        .update({ paid: newTotalPaid, history: currentHistory })
+        .eq('id', id);
+    
+    if(!error) { 
+        showSuccessModal("Direkod!", "Maklumat bayaran berjaya disimpan.");
+        toggleMemberConfigModal(false); 
+        loadDataFromSupabase(); 
     } else {
-        let history = [];
-        let paid = 0;
-        
-        if (amountVal > 0) {
-            const dateStr = formatDate(dateInput);
-            history.push({ date: dateStr, amount: amountVal, type: payType });
-            paid = amountVal;
-        }
-
-        const { error } = await supabaseClient
-            .from('members')
-            .insert([{ name: name, paid: paid, history: history }]);
-            
-        if(!error) { 
-            showSuccessModal("Selesai", "Ahli telah berjaya ditambah");
-            toggleMemberConfigModal(false);
-            loadDataFromSupabase(); 
-        } else {
-            alert("Gagal tambah ahli: " + error.message);
-        }
+        showErrorModal("Ralat Pangkalan Data", error.message);
     }
 }
 
 async function deleteMember() {
     const id = document.getElementById('configMemberId').value;
-
     if(!id) return;
 
     showConfirmationModal(
         "Adakah anda pasti mahu memadam ahli ini?",
         async () => {
-            const { error } = await supabaseClient
-                .from('members')
-                .delete()
-                .eq('id', id);
-
+            const { error } = await supabaseClient.from('members').delete().eq('id', id);
             if(!error) {
                 toggleMemberConfigModal(false);
                 showSuccessModal("Berjaya", "Ahli telah dipadam");
                 loadDataFromSupabase();
             } else {
-                alert("Gagal memadam: " + error.message);
+                showErrorModal("Ralat Sistem", error.message);
             }
         }
     );
@@ -1301,20 +1401,12 @@ async function submitExpense(e) {
 
 function deleteExpense() {
     const id = document.getElementById('expId').value;
-    
-    if (!id) {
-        console.log("Tiada ID untuk dipadam.");
-        return;
-    }
+    if (!id) return;
 
     showConfirmationModal(
         "Adakah anda pasti mahu memadam rekod perbelanjaan ini?", 
         async () => {
-            const { error } = await supabaseClient
-                .from('expenses')
-                .delete()
-                .eq('id', id);
-
+            const { error } = await supabaseClient.from('expenses').delete().eq('id', id);
             if(!error) { 
                 showSuccessModal("Berjaya!", "Rekod telah dipadam");
                 toggleExpenseModal(false); 
@@ -1326,6 +1418,7 @@ function deleteExpense() {
     );
 }
 
+// --- FUNGSI AUTO-LOGOUT ---
 let afkTimer;
 const AFK_LIMIT = 3 * 60 * 1000;
 
@@ -1363,6 +1456,7 @@ function resetAfkTimer() {
     }, AFK_LIMIT);
 }
 
+// --- FUNGSI MODAL MAKLUMAN LALAI ---
 function showSuccessModal(title, message) {
     const modal = document.getElementById('genericSuccessModal');
     const content = modal.querySelector('div');
@@ -1585,4 +1679,91 @@ function lockScroll() {
 
 function unlockScroll() {
     document.body.classList.remove('overflow-hidden');
+}
+
+// --- FUNGSI EDIT TARGET KESELURUHAN (UI MODEN) ---
+function editTotalTarget() {
+    const modal = document.getElementById('targetPromptModal');
+    const content = modal.querySelector('div');
+    const input = document.getElementById('newTargetInput');
+
+    input.value = dynamicFixedTarget; 
+
+    lockScroll();
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+        input.focus(); 
+    }, 10);
+}
+
+function closeTargetPromptModal() {
+    const modal = document.getElementById('targetPromptModal');
+    const content = modal.querySelector('div');
+
+    unlockScroll();
+    modal.classList.add('opacity-0');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); }, 300);
+}
+
+async function submitNewTarget() {
+    const inputVal = document.getElementById('newTargetInput').value;
+    const newTarget = parseFloat(inputVal);
+
+    if (isNaN(newTarget) || newTarget <= 0) {
+        closeTargetPromptModal();
+        setTimeout(() => {
+            showErrorModal("Ralat!", "Sila masukkan nilai nombor yang sah.");
+        }, 300); 
+        return;
+    }
+
+    closeTargetPromptModal();
+
+    dynamicFixedTarget = newTarget;
+    renderTable(); 
+
+    const { error } = await supabaseClient
+        .from('app_settings')
+        .upsert({ setting_key: 'total_target', setting_value: dynamicFixedTarget.toString() });
+    
+    setTimeout(() => {
+        if (error) {
+            showErrorModal("Ralat Pangkalan Data", "Gagal mengemaskini target: " + error.message);
+        } else {
+            showSuccessModal("Berjaya!", "Target keseluruhan telah dikemaskini.");
+        }
+    }, 300);
+}
+
+// --- FUNGSI KAWALAN MODAL RALAT (ERROR) ---
+function showErrorModal(title, message) {
+    const modal = document.getElementById('genericErrorModal');
+    const content = modal.querySelector('div');
+    
+    document.getElementById('genErrorTitle').innerText = title;
+    document.getElementById('genErrorDesc').innerText = message;
+
+    lockScroll();
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+    }, 10);
+}
+
+function closeGenericErrorModal() {
+    const modal = document.getElementById('genericErrorModal');
+    const content = modal.querySelector('div');
+    
+    unlockScroll();
+    modal.classList.add('opacity-0');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); }, 300);
 }
