@@ -18,39 +18,28 @@ let showTentativeWarning = true;
 let showChecklistWarning = true;
 
 async function loadDataFromSupabase() {
-    console.log("Sedang menarik data dari Supabase...");
+    console.log("Sedang menarik data dari Supabase secara serentak...");
 
     try {
-        let { data: membersData, error: errorMembers } = await supabaseClient
-            .from('members')
-            .select('*')
-            .order('id', { ascending: true });
+        const [
+            { data: membersData, error: errorMembers },
+            { data: expensesData, error: errorExpenses },
+            { data: tentativeData, error: errorTentative },
+            { data: checklistData, error: errorChecklist },
+            { data: settingsData, error: errorSettings }
+        ] = await Promise.all([
+            supabaseClient.from('members').select('*').order('id', { ascending: true }),
+            supabaseClient.from('expenses').select('*'),
+            supabaseClient.from('tentative').select('*').order('sort_order', { ascending: true }),
+            supabaseClient.from('checklist').select('*').order('sort_order', { ascending: true }),
+            supabaseClient.from('app_settings').select('*')
+        ]);
 
         if (errorMembers) throw errorMembers;
-
-        let { data: expensesData, error: errorExpenses } = await supabaseClient
-            .from('expenses')
-            .select('*');
-
         if (errorExpenses) throw errorExpenses;
-
-        let { data: tentativeData, error: errorTentative } = await supabaseClient
-            .from('tentative')
-            .select('*')
-            .order('sort_order', { ascending: true });
-
         if (errorTentative) throw errorTentative;
-
-        let { data: checklistData, error: errorChecklist } = await supabaseClient
-            .from('checklist')
-            .select('*')
-            .order('sort_order', { ascending: true });
-
         if (errorChecklist) throw errorChecklist;
-
-        let { data: settingsData, error: errorSettings } = await supabaseClient
-            .from('app_settings')
-            .select('*');
+        if (errorSettings) throw errorSettings;
 
         if (settingsData) {
             let warningSetting = settingsData.find(s => s.setting_key === 'show_tentative_warning');
@@ -68,6 +57,7 @@ async function loadDataFromSupabase() {
         if (tentativeData) tentativeList = tentativeData;
         if (checklistData) checklistList = checklistData;
 
+        // Selepas data masuk, barulah render ke skrin
         renderTable();
         renderExpenses();
         renderTentative();
@@ -96,6 +86,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             stopAutoLogoutTimer();
         }
     });
+
+    setupImageZoom(); // Inisialisasi fungsi zoom gambar
 
     setTimeout(() => {
         const toast = document.getElementById('paymentToast');
@@ -457,9 +449,9 @@ function renderTable() {
         if (m.history && m.history.length > 0) {
             m.history.forEach(h => {
                 const amt = parseFloat(h.amount);
-                const type = h.type || 'Bayaran Asas';
+                const type = h.type || 'Bayaran Tabung';
                 
-                if (type === 'Bayaran Asas' || type === 'Bayaran Asas (Target)') {
+                if (type === 'Bayaran Tabung' || type === 'Bayaran Tabung (Target)') {
                     asasTotal += amt;
                 } else {
                     if (!lainLainTotals[type]) lainLainTotals[type] = 0;
@@ -1137,14 +1129,14 @@ function prepareEditHistoryItem(memberId, index) {
     document.getElementById('editHistoryIndex').value = index; 
     document.getElementById('initPayAmount').value = item.amount;
     
-    const currentType = item.type || 'Bayaran Asas';
+    const currentType = item.type || 'Bayaran Tabung';
     const payTypeEl = document.getElementById('initPayType');
     const otherPayContainer = document.getElementById('otherPayTypeContainer');
     const otherPayInput = document.getElementById('initPayOther');
 
     if (payTypeEl) {
-        if (currentType === 'Bayaran Asas' || currentType === 'Bayaran Asas (Target)') {
-            payTypeEl.value = 'Bayaran Asas';
+        if (currentType === 'Bayaran Tabung' || currentType === 'Bayaran Tabung (Target)') {
+            payTypeEl.value = 'Bayaran Tabung';
             if (otherPayContainer) otherPayContainer.classList.add('hidden');
             if (otherPayInput) otherPayInput.value = '';
         } else {
@@ -1183,7 +1175,7 @@ function cancelHistoryEdit() {
     if(date) date.valueAsDate = new Date();
     
     const payTypeEl = document.getElementById('initPayType');
-    if(payTypeEl) payTypeEl.value = 'Bayaran Asas';
+    if(payTypeEl) payTypeEl.value = 'Bayaran Tabung';
     const otherPayContainer = document.getElementById('otherPayTypeContainer');
     if (otherPayContainer) otherPayContainer.classList.add('hidden');
     const otherPayInput = document.getElementById('initPayOther');
@@ -1237,7 +1229,7 @@ async function savePaymentRecord() {
     const editIndex = document.getElementById('editHistoryIndex').value;
     
     const payTypeEl = document.getElementById('initPayType');
-    let payType = payTypeEl ? payTypeEl.value : 'Bayaran Asas';
+    let payType = payTypeEl ? payTypeEl.value : 'Bayaran Tabung';
     if (payType === 'Lain-lain') {
         const otherVal = document.getElementById('initPayOther').value.trim();
         payType = otherVal !== '' ? otherVal : 'Lain-lain';
@@ -1646,9 +1638,94 @@ function closeNoReceiptModal() {
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 }
 
-// --- FUNGSI GALERI GAMBAR (SLIDER) ---
+// --- FUNGSI GALERI GAMBAR & ZOOM KAWALAN SENTUH ---
 let currentGalleryImages = [];
 let currentGalleryIndex = 0;
+
+let currentZoom = 1;
+let minZoom = 1;
+let maxZoom = 4;
+let translateX = 0;
+let translateY = 0;
+let initialPinchDistance = null;
+let lastZoom = 1;
+
+function resetZoom() {
+    currentZoom = 1;
+    translateX = 0;
+    translateY = 0;
+    const img = document.getElementById('galleryMainImage');
+    if (img) {
+        img.style.transform = `translate(0px, 0px) scale(1)`;
+        img.classList.add('transition-transform'); 
+    }
+}
+
+function setupImageZoom() {
+    const img = document.getElementById('galleryMainImage');
+    if (!img) return;
+
+    let isDragging = false;
+    let startPos = { x: 0, y: 0 };
+    let lastTap = 0;
+
+    img.addEventListener('touchstart', (e) => {
+        img.classList.remove('transition-transform'); 
+        
+        if (e.touches.length === 2) {
+            isDragging = false;
+            initialPinchDistance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            lastZoom = currentZoom;
+        } else if (e.touches.length === 1) {
+            isDragging = true;
+            startPos = { x: e.touches[0].clientX - translateX, y: e.touches[0].clientY - translateY };
+        }
+    }, { passive: false });
+
+    img.addEventListener('touchmove', (e) => {
+        if (currentZoom > 1 || e.touches.length === 2) {
+            e.preventDefault(); 
+        }
+
+        if (e.touches.length === 2 && initialPinchDistance) {
+            const currentDistance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            currentZoom = Math.min(Math.max(minZoom, lastZoom * (currentDistance / initialPinchDistance)), maxZoom);
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+        } else if (e.touches.length === 1 && isDragging && currentZoom > 1) {
+            translateX = e.touches[0].clientX - startPos.x;
+            translateY = e.touches[0].clientY - startPos.y;
+            img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
+        }
+    }, { passive: false });
+
+    img.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) {
+            initialPinchDistance = null;
+        }
+        if (e.touches.length === 0) {
+            isDragging = false;
+        }
+
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0) {
+            if (currentZoom > 1) {
+                resetZoom();
+            } else {
+                currentZoom = 2.5; 
+                img.style.transform = `translate(0px, 0px) scale(${currentZoom})`;
+                img.classList.add('transition-transform');
+            }
+        }
+        lastTap = currentTime;
+    });
+}
 
 function viewReceipt(urls) {
     const modal = document.getElementById('receiptImageModal');
@@ -1658,7 +1735,6 @@ function viewReceipt(urls) {
         return;
     }
 
-    // Pecahkan string kepada array berdasarkan koma
     currentGalleryImages = urls.split(',').map(url => url.trim()).filter(url => url !== "");
     currentGalleryIndex = 0;
     
@@ -1679,14 +1755,14 @@ function updateGalleryView() {
     const btnNext = document.getElementById('btnNextImage');
     const counter = document.getElementById('galleryCounter');
 
-    // Animasi tukar gambar
-    img.classList.add('opacity-40'); // pudarkan sekejap
+    resetZoom(); 
+
+    img.classList.add('opacity-40'); 
     setTimeout(() => {
         img.src = currentGalleryImages[currentGalleryIndex];
-        img.classList.remove('opacity-40'); // terangkan balik
+        img.classList.remove('opacity-40'); 
     }, 150);
 
-    // Tunjuk atau sembunyikan butang panah mengikut jumlah gambar
     if (currentGalleryImages.length > 1) {
         btnPrev.classList.remove('hidden');
         btnNext.classList.remove('hidden');
@@ -1701,7 +1777,6 @@ function updateGalleryView() {
 
 function nextImage() {
     currentGalleryIndex++;
-    // Jika sampai di hujung, ulang dari gambar pertama
     if (currentGalleryIndex >= currentGalleryImages.length) {
         currentGalleryIndex = 0; 
     }
@@ -1710,7 +1785,6 @@ function nextImage() {
 
 function prevImage() {
     currentGalleryIndex--;
-    // Jika patah balik dari gambar pertama, pergi ke gambar paling akhir
     if (currentGalleryIndex < 0) {
         currentGalleryIndex = currentGalleryImages.length - 1; 
     }
@@ -1723,11 +1797,12 @@ function closeReceiptModal() {
     
     if (modal) {
         unlockScroll();
+        resetZoom(); 
         modal.classList.add('opacity-0');
         setTimeout(() => { 
             modal.classList.add('hidden'); 
             if(img) img.src = ''; 
-            currentGalleryImages = []; // Kosongkan memori
+            currentGalleryImages = []; 
         }, 300);
     }
 }
