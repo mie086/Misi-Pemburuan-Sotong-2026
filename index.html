@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -559,7 +560,7 @@
                     <div class="w-full mb-2">
                         <label class="block text-[10px] font-bold text-gray-600 mb-1">Kategori</label>
                         <select id="initPayType" onchange="toggleOtherPayType()" class="w-full p-2 bg-white border border-emerald-200 rounded-lg text-xs focus:border-emerald-500 outline-none">
-                            <option value="Bayaran Asas">Bayaran Asas (Target)</option>
+                            <option value="Bayaran Tabung">Bayaran Tabung (Target)</option>
                             <option value="Lain-lain">Lain-lain</option>
                         </select>
                     </div>
@@ -878,15 +879,17 @@
             <div class="relative w-full flex items-center justify-center mt-6">
                 
                 <!-- Arrow Kiri -->
-                <button id="btnPrevImage" onclick="prevImage()" class="absolute left-2 md:left-10 text-white bg-black/60 hover:bg-black/90 rounded-full w-12 h-12 flex items-center justify-center transition z-10 hidden hover:scale-110 border border-white/20">
+                <button id="btnPrevImage" onclick="prevImage()" class="absolute left-2 md:left-10 text-white bg-black/60 hover:bg-black/90 rounded-full w-12 h-12 flex items-center justify-center transition z-20 hidden hover:scale-110 border border-white/20">
                     <i class="fa-solid fa-chevron-left text-lg"></i>
                 </button>
 
-                <!-- Gambar Utama -->
-                <img id="galleryMainImage" src="" class="max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl transition-opacity duration-200" alt="Gambar Lampiran">
+                <!-- Bekas Gambar Utama (Overflow Hidden utk halang gambar terkeluar bila zoom) -->
+                <div class="w-full flex items-center justify-center overflow-hidden rounded-xl relative z-10" style="height: 75vh;">
+                    <img id="galleryMainImage" src="" class="max-w-full max-h-full object-contain shadow-2xl transition-opacity duration-200 touch-none cursor-move" alt="Gambar Lampiran">
+                </div>
 
                 <!-- Arrow Kanan -->
-                <button id="btnNextImage" onclick="nextImage()" class="absolute right-2 md:right-10 text-white bg-black/60 hover:bg-black/90 rounded-full w-12 h-12 flex items-center justify-center transition z-10 hidden hover:scale-110 border border-white/20">
+                <button id="btnNextImage" onclick="nextImage()" class="absolute right-2 md:right-10 text-white bg-black/60 hover:bg-black/90 rounded-full w-12 h-12 flex items-center justify-center transition z-20 hidden hover:scale-110 border border-white/20">
                     <i class="fa-solid fa-chevron-right text-lg"></i>
                 </button>
             </div>
