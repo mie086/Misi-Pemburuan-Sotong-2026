@@ -56,53 +56,72 @@
                 </div>
                 
                 <div class="p-5 bg-white flex flex-col gap-4 text-sm leading-relaxed text-gray-700">
-                    <p class="text-justify">
-                        Selamat Datang ke laman rasmi <span class="text-emerald-600 font-bold">Misi Pemburuan Sotong 2027</span>. Inisiatif bersepadu ini diterajui oleh <span class="font-bold text-gray-900">John</span> dan <span class="font-bold text-gray-900">ManRemy</span> bagi menerokai operasi di perairan Laut China Selatan.
-                    </p>
+                    <h3 class="font-bold text-gray-900 text-base border-b border-gray-100 pb-2 text-center">MISI PEMBURUAN SOTONG 2027 🦑</h3>
+                    
+                    <ul class="space-y-3 mt-1 text-sm text-gray-700">
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 text-center shrink-0 mt-0.5">📍</span> 
+                            <div class="flex-1 flex items-start">
+                                <strong class="shrink-0 mr-1.5">Destinasi:</strong> 
+                                <span class="flex-1">
+                                    Jeti Kuala Besut, Terengganu 
+                                    <span onclick="viewReceipt('Images/1.png, Images/2.jpg, Images/3.jpg')" class="inline-flex items-center gap-1 cursor-pointer text-blue-500 hover:text-blue-700 transition group ml-1">
+                                        <i class="fa-solid fa-image text-sm group-hover:scale-110 transition-transform"></i>
+                                        <span class="text-[10px] font-medium underline decoration-dotted">Lihat</span>
+                                    </span>
+                                </span>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 text-center shrink-0 mt-0.5">📅</span> 
+                            <div class="flex-1 flex items-start">
+                                <strong class="shrink-0 mr-1.5">Tarikh:</strong> 
+                                <span class="flex-1">
+                                    <span onclick="openCalendarModal()" class="cursor-pointer hover:text-emerald-600 underline decoration-dotted font-medium">5 &ndash; 7 Jun 2027</span> | 6 Jun &mdash; Hari Memburu Sotong 🦑
+                                </span>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 text-center shrink-0 mt-0.5">🛥️</span> 
+                            <div class="flex-1 flex items-start">
+                                <strong class="shrink-0 mr-1.5">Tekong:</strong> 
+                                <span class="flex-1">
+                                    Pn. Syazwanie Aqilah
+                                    <span onclick="viewReceipt('Images/4.jpg, Images/5.png, Images/6.png, Images/7.png, Images/8.png, Images/9.png, Images/10.png')" class="inline-flex items-center gap-1 cursor-pointer text-blue-500 hover:text-blue-700 transition group ml-1">
+                                        <i class="fa-solid fa-image text-sm group-hover:scale-110 transition-transform"></i>
+                                        <span class="text-[10px] font-medium underline decoration-dotted">Lihat</span>
+                                    </span>
+                                </span>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 text-center shrink-0 mt-0.5">🎯</span> 
+                            <div class="flex-1 flex items-start">
+                                <strong class="shrink-0 mr-1.5">Target:</strong> 
+                                <span class="flex-1">
+                                    100 kg sotong
+                                </span>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 text-center shrink-0 mt-0.5">🏡</span> 
+                            <div class="flex-1 flex items-start">
+                                <strong class="shrink-0 mr-1.5">Penginapan:</strong> 
+                                <span class="flex-1">
+                                    2 malam di homestay
+                                    <span onclick="viewReceipt('Images/11.jpeg')" class="inline-flex items-center gap-1 cursor-pointer text-blue-500 hover:text-blue-700 transition group ml-1">
+                                        <i class="fa-solid fa-image text-sm group-hover:scale-110 transition-transform"></i>
+                                        <span class="text-[10px] font-medium underline decoration-dotted">Lihat</span>
+                                    </span>
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
 
-                    <div class="space-y-4 pt-4">
-                        <h3 class="font-bold text-gray-800 text-base border-b border-blue-100 pb-2 mb-2 flex items-center justify-center gap-2">
-                           <i class="fa-solid fa-anchor text-blue-600"></i> Misi & Target
-                        </h3>
-
-                        <ul class="space-y-3 mt-3">
-                             <li class="flex items-start gap-3 text-xs text-gray-600">
-                                 <div class="bg-orange-100 p-1.5 rounded-lg text-orange-600 shrink-0">
-                                     <i class="fa-solid fa-trophy text-sm"></i>
-                                 </div>
-                                 <div>
-                                     <span class="font-bold block text-gray-800">Juara Mega Sotong</span>
-                                     Buruan sotong saiz 'gajah' untuk rekod trip.
-                                 </div>
-                             </li>
-                             <li class="flex items-start gap-3 text-xs text-gray-600">
-                                 <div class="bg-emerald-100 p-1.5 rounded-lg text-emerald-600 shrink-0">
-                                     <i class="fa-solid fa-heart-pulse text-sm"></i>
-                                 </div>
-                                 <div>
-                                     <span class="font-bold block text-gray-800">Sifar Mabuk Laut</span>
-                                     Misi kekal cergas mencadat sampai subuh.
-                                 </div>
-                             </li>
-                             <li class="flex items-start gap-3 text-xs text-gray-600">
-                                 <div class="bg-pink-100 p-1.5 rounded-lg text-pink-600 shrink-0">
-                                     <i class="fa-solid fa-handshake text-sm"></i>
-                                 </div>
-                                 <div>
-                                     <span class="font-bold block text-gray-800">Ikatan Ukhuwah</span>
-                                     Eratkan silaturahim, biar rapat macam sotong dalam pukat.
-                                 </div>
-                             </li>
-                         </ul>
-
-                        <div class="mt-4 pt-2 border-t border-dashed border-gray-200">
-                             <p class="text-[10px] font-bold text-gray-400 uppercase mb-1 text-center">Motto Rasmi:</p>
-                             <p class="font-serif text-xs text-center text-slate-800 font-bold italic">"Biar Berputih Tulang, Jangan Berputih Mata."</p>
-                        </div>
-                    </div>
-
-                    <div class="text-xs bg-purple-50 p-3 rounded-lg border border-purple-100 text-purple-800 mt-2 text-center">
-                        <i class="fa-solid fa-robot text-purple-500 mr-1"></i> <strong>Trivia Tech:</strong> Laman ini dihasilkan melalui kerjasama sistem <span class="font-bold text-purple-700">Gemini</span> dan <span class="font-bold text-purple-700">ChatGpt</span> bagi memastikan semua urusan pengguna diproses dengan pantas, tepat dan tanpa ralat.
+                    <div class="space-y-4 mt-2 text-justify">
+                        <p>Trip sebelum ini didatangi banyak cabaran dan ujian, ditambah pula dengan cabaran mabuk laut. 🦑 😅</p>
+                        <p>In Shaa Allah, trip kali ini lebih baik dan dipermudahkan untuk mencapai <strong>target 100 kg sotong</strong>. 🦑 🎯</p>
+                        <p>Yang penting, bukan sekadar mengejar hasil tangkapan tetapi dapat <strong>luangkan masa bersama, mengeratkan silaturahim dan menikmati pengalaman mencandat sotong</strong>. 🦑 🤝</p>
                     </div>
                 </div>
             </div>
@@ -285,6 +304,12 @@
                 </div>
             </div>
 
+            <!-- Nota Kaki / Trivia Tech -->
+            <div class="text-[10px] bg-purple-50/80 backdrop-blur-sm p-3 rounded-xl border border-purple-200/60 text-purple-800 text-center shadow-sm">
+                <i class="fa-solid fa-robot text-purple-500 mr-1"></i> <strong>Trivia Tech:</strong> Halamain ini dihasilkan dengan model <span class="font-bold text-purple-700">Gemini</span> dan <span class="font-bold text-purple-700">ChatGpt</span> bagi memastikan semua urusan tiada ralat.
+            </div>
+
+            <!-- Ruang kosong dinaikkan ke h-24 supaya nota kaki tidak tertutup oleh navigasi bawah -->
             <div class="h-10 w-full"></div>
 
         </div> 
@@ -518,7 +543,7 @@
                 </div>
             </div>
             
-            <!-- ZON 2: PENGURUSAN BAYARAN (Hanya dipapar jika Edit Ahli sedia ada) -->
+            <!-- ZON 2: PENGURUSAN BAYARAN -->
             <div id="paymentSectionWrapper" class="hidden">
                 <div id="paymentBoxContainer" class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 mb-4 transition-colors duration-300">
                     <input type="hidden" id="editHistoryIndex">
@@ -840,13 +865,20 @@
         </div>
     </div>
 
+    <!-- Modal Galeri Gambar -->
     <div id="receiptImageModal" onclick="closeReceiptModal()" class="fixed inset-0 bg-black/95 z-[300] hidden flex items-center justify-center transition-opacity opacity-0 backdrop-blur-sm">
-        <div onclick="event.stopPropagation()" class="relative max-w-4xl max-h-[90vh] p-4">
-            <button onclick="closeReceiptModal()" class="absolute -top-12 right-0 text-gray-400 hover:text-white transition p-2">
+        <div onclick="event.stopPropagation()" class="relative w-full max-w-3xl max-h-[90vh] p-4 flex flex-col items-center">
+            <!-- Butang Tutup (X) -->
+            <button onclick="closeReceiptModal()" class="absolute -top-10 right-2 text-gray-400 hover:text-white transition p-2 z-10">
                 <i class="fa-solid fa-xmark text-3xl"></i>
             </button>
-            <img id="receiptImageDisplay" src="" class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl border border-white/10" alt="Bukti Resit">
-            <p class="text-center text-gray-500 text-xs mt-4">Klik dimana-mana untuk tutup</p>
+            
+            <!-- Bekas Gambar (Boleh Tatal / Scroll) -->
+            <div id="galleryContainer" class="w-full max-h-[85vh] overflow-y-auto flex flex-col gap-6 items-center pr-2 pb-4" style="scrollbar-width: thin; scrollbar-color: #4b5563 transparent;">
+                <!-- Gambar akan dijana di sini oleh JavaScript -->
+            </div>
+            
+            <p class="text-center text-gray-400 text-xs mt-3">Tatal (scroll) ke bawah untuk lebih gambar. Klik di luar untuk tutup.</p>
         </div>
     </div>
 
