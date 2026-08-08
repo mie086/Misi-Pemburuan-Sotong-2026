@@ -1646,45 +1646,88 @@ function closeNoReceiptModal() {
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 }
 
-// --- FUNGSI GALERI GAMBAR ---
+// --- FUNGSI GALERI GAMBAR (SLIDER) ---
+let currentGalleryImages = [];
+let currentGalleryIndex = 0;
+
 function viewReceipt(urls) {
     const modal = document.getElementById('receiptImageModal');
-    const container = document.getElementById('galleryContainer');
     
-    if (!modal || !container) {
+    if (!modal) {
         console.error("Error: Modal galeri tidak dijumpai dalam HTML.");
         return;
     }
 
-    // Pecahkan string kepada array menggunakan tanda koma, dan bersihkan ruang kosong (trim)
-    const urlArray = urls.split(',').map(url => url.trim()).filter(url => url !== "");
+    // Pecahkan string kepada array berdasarkan koma
+    currentGalleryImages = urls.split(',').map(url => url.trim()).filter(url => url !== "");
+    currentGalleryIndex = 0;
     
-    // Bina elemen HTML untuk setiap gambar
-    container.innerHTML = '';
-    urlArray.forEach(url => {
-        container.innerHTML += `<img src="${url}" class="max-w-full h-auto object-contain rounded-xl shadow-2xl border border-white/10 bg-black/50" alt="Gambar Lampiran" loading="lazy">`;
-    });
+    if (currentGalleryImages.length === 0) return;
+
+    updateGalleryView();
     
     lockScroll();
-    
     modal.classList.remove('hidden');
     setTimeout(() => {
         modal.classList.remove('opacity-0');
-        // Skrol ke atas semula setiap kali galeri dibuka
-        container.scrollTop = 0; 
     }, 10);
+}
+
+function updateGalleryView() {
+    const img = document.getElementById('galleryMainImage');
+    const btnPrev = document.getElementById('btnPrevImage');
+    const btnNext = document.getElementById('btnNextImage');
+    const counter = document.getElementById('galleryCounter');
+
+    // Animasi tukar gambar
+    img.classList.add('opacity-40'); // pudarkan sekejap
+    setTimeout(() => {
+        img.src = currentGalleryImages[currentGalleryIndex];
+        img.classList.remove('opacity-40'); // terangkan balik
+    }, 150);
+
+    // Tunjuk atau sembunyikan butang panah mengikut jumlah gambar
+    if (currentGalleryImages.length > 1) {
+        btnPrev.classList.remove('hidden');
+        btnNext.classList.remove('hidden');
+        counter.classList.remove('hidden');
+        counter.innerText = `${currentGalleryIndex + 1} / ${currentGalleryImages.length}`;
+    } else {
+        btnPrev.classList.add('hidden');
+        btnNext.classList.add('hidden');
+        counter.classList.add('hidden');
+    }
+}
+
+function nextImage() {
+    currentGalleryIndex++;
+    // Jika sampai di hujung, ulang dari gambar pertama
+    if (currentGalleryIndex >= currentGalleryImages.length) {
+        currentGalleryIndex = 0; 
+    }
+    updateGalleryView();
+}
+
+function prevImage() {
+    currentGalleryIndex--;
+    // Jika patah balik dari gambar pertama, pergi ke gambar paling akhir
+    if (currentGalleryIndex < 0) {
+        currentGalleryIndex = currentGalleryImages.length - 1; 
+    }
+    updateGalleryView();
 }
 
 function closeReceiptModal() {
     const modal = document.getElementById('receiptImageModal');
-    const container = document.getElementById('galleryContainer');
+    const img = document.getElementById('galleryMainImage');
     
     if (modal) {
         unlockScroll();
         modal.classList.add('opacity-0');
         setTimeout(() => { 
             modal.classList.add('hidden'); 
-            if(container) container.innerHTML = ''; // Kosongkan memori gambar apabila ditutup
+            if(img) img.src = ''; 
+            currentGalleryImages = []; // Kosongkan memori
         }, 300);
     }
 }
