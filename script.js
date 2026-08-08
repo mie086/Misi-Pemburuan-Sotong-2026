@@ -1202,17 +1202,15 @@ async function saveMemberProfile() {
     }
 
     if (id) {
-        // --- KEMASKINI AHLI SEDIA ADA ---
         const { error } = await supabaseClient.from('members').update({ name: name, target: targetVal }).eq('id', id);
         if (!error) {
             showSuccessModal("Disimpan!", "Profil ahli berjaya dikemaskini.");
-            toggleMemberConfigModal(false); // <--- KOD TAMBAHAN: Tutup modal selepas berjaya kemaskini
+            toggleMemberConfigModal(false);
             loadDataFromSupabase(); 
         } else {
             showErrorModal("Ralat Sistem", error.message);
         }
     } else {
-        // --- TAMBAH AHLI BAHARU ---
         const { error } = await supabaseClient.from('members').insert([{ name: name, paid: 0, history: [], target: targetVal }]);
         if (!error) {
             showSuccessModal("Ditambah!", "Ahli baharu berjaya didaftarkan.");
@@ -1401,12 +1399,20 @@ async function submitExpense(e) {
 
 function deleteExpense() {
     const id = document.getElementById('expId').value;
-    if (!id) return;
+    
+    if (!id) {
+        console.log("Tiada ID untuk dipadam.");
+        return;
+    }
 
     showConfirmationModal(
         "Adakah anda pasti mahu memadam rekod perbelanjaan ini?", 
         async () => {
-            const { error } = await supabaseClient.from('expenses').delete().eq('id', id);
+            const { error } = await supabaseClient
+                .from('expenses')
+                .delete()
+                .eq('id', id);
+
             if(!error) { 
                 showSuccessModal("Berjaya!", "Rekod telah dipadam");
                 toggleExpenseModal(false); 
@@ -1640,35 +1646,45 @@ function closeNoReceiptModal() {
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 }
 
-function viewReceipt(url) {
+// --- FUNGSI GALERI GAMBAR ---
+function viewReceipt(urls) {
     const modal = document.getElementById('receiptImageModal');
-    const img = document.getElementById('receiptImageDisplay');
+    const container = document.getElementById('galleryContainer');
     
-    if (!modal || !img) {
-        console.error("Error: Modal 'receiptImageModal' tidak dijumpai dalam HTML.");
+    if (!modal || !container) {
+        console.error("Error: Modal galeri tidak dijumpai dalam HTML.");
         return;
     }
 
-    img.src = url;
+    // Pecahkan string kepada array menggunakan tanda koma, dan bersihkan ruang kosong (trim)
+    const urlArray = urls.split(',').map(url => url.trim()).filter(url => url !== "");
+    
+    // Bina elemen HTML untuk setiap gambar
+    container.innerHTML = '';
+    urlArray.forEach(url => {
+        container.innerHTML += `<img src="${url}" class="max-w-full h-auto object-contain rounded-xl shadow-2xl border border-white/10 bg-black/50" alt="Gambar Lampiran" loading="lazy">`;
+    });
     
     lockScroll();
     
     modal.classList.remove('hidden');
     setTimeout(() => {
         modal.classList.remove('opacity-0');
+        // Skrol ke atas semula setiap kali galeri dibuka
+        container.scrollTop = 0; 
     }, 10);
 }
 
 function closeReceiptModal() {
     const modal = document.getElementById('receiptImageModal');
-    const img = document.getElementById('receiptImageDisplay');
+    const container = document.getElementById('galleryContainer');
     
     if (modal) {
         unlockScroll();
         modal.classList.add('opacity-0');
         setTimeout(() => { 
             modal.classList.add('hidden'); 
-            if(img) img.src = '';
+            if(container) container.innerHTML = ''; // Kosongkan memori gambar apabila ditutup
         }, 300);
     }
 }
