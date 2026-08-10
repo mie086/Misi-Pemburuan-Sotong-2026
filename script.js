@@ -57,7 +57,6 @@ async function loadDataFromSupabase() {
         if (tentativeData) tentativeList = tentativeData;
         if (checklistData) checklistList = checklistData;
 
-        // Selepas data masuk, barulah render ke skrin
         renderTable();
         renderExpenses();
         renderTentative();
@@ -451,7 +450,8 @@ function renderTable() {
                 const amt = parseFloat(h.amount);
                 const type = h.type || 'Bayaran Tabung';
                 
-                if (type === 'Bayaran Tabung' || type === 'Bayaran Tabung (Target)') {
+                // Menyokong format lama dan format baharu
+                if (type === 'Bayaran Tabung' || type === 'Bayaran Tabung (Target)' || type === 'Bayaran Asas' || type === 'Bayaran Asas (Target)') {
                     asasTotal += amt;
                 } else {
                     if (!lainLainTotals[type]) lainLainTotals[type] = 0;
@@ -585,7 +585,7 @@ function renderExpenses() {
 
         if (e.receipt_url && e.receipt_url.trim() !== "") {
             receiptIcon = `
-                <div onclick="viewReceipt('${e.receipt_url}')" class="mt-1 inline-flex items-center gap-1 cursor-pointer text-blue-500 hover:text-blue-700 transition group">
+                <div data-receipt-url="${escapeHtml(e.receipt_url)}" onclick="viewReceipt(this.dataset.receiptUrl)" class="mt-1 inline-flex items-center gap-1 cursor-pointer text-blue-500 hover:text-blue-700 transition group">
                     <i class="fa-solid fa-receipt text-lg group-hover:scale-110 transition-transform"></i>
                     <span class="text-[9px] font-medium underline decoration-dotted">Lihat</span>
                 </div>
@@ -1018,7 +1018,7 @@ function deleteChecklist() {
     );
 }
 
-// --- FUNGSI TABUNG / AHLI (DIASINGKAN) ---
+// --- FUNGSI TABUNG / AHLI ---
 function toggleOtherPayType() {
     const select = document.getElementById('initPayType');
     const container = document.getElementById('otherPayTypeContainer');
@@ -1135,7 +1135,7 @@ function prepareEditHistoryItem(memberId, index) {
     const otherPayInput = document.getElementById('initPayOther');
 
     if (payTypeEl) {
-        if (currentType === 'Bayaran Tabung' || currentType === 'Bayaran Tabung (Target)') {
+        if (currentType === 'Bayaran Tabung' || currentType === 'Bayaran Tabung (Target)' || currentType === 'Bayaran Asas' || currentType === 'Bayaran Asas (Target)') {
             payTypeEl.value = 'Bayaran Tabung';
             if (otherPayContainer) otherPayContainer.classList.add('hidden');
             if (otherPayInput) otherPayInput.value = '';
@@ -1176,13 +1176,13 @@ function cancelHistoryEdit() {
     
     const payTypeEl = document.getElementById('initPayType');
     if(payTypeEl) payTypeEl.value = 'Bayaran Tabung';
+    
     const otherPayContainer = document.getElementById('otherPayTypeContainer');
     if (otherPayContainer) otherPayContainer.classList.add('hidden');
     const otherPayInput = document.getElementById('initPayOther');
     if (otherPayInput) otherPayInput.value = '';
 }
 
-// 1. Simpan Profil (Nama & Target SAHAJA)
 async function saveMemberProfile() {
     const id = document.getElementById('configMemberId').value;
     const name = document.getElementById('configMemberName').value.trim();
@@ -1214,7 +1214,6 @@ async function saveMemberProfile() {
     }
 }
 
-// 2. Simpan Rekod Bayaran SAHAJA
 async function savePaymentRecord() {
     const id = document.getElementById('configMemberId').value;
     if (!id) return; 
@@ -1638,6 +1637,30 @@ function closeNoReceiptModal() {
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 }
 
+// --- FUNGSI KESELAMATAN VALIDASI URL ---
+function isValidReceiptUrl(url) {
+    if (typeof url !== 'string' || !url.trim()) return false;
+    
+    const cleanUrl = url.trim();
+
+    // 1. BENARKAN gambar dari folder GitHub (Cth: Images/1.png atau gambar/)
+    if (cleanUrl.startsWith('Images/') || cleanUrl.startsWith('gambar/')) {
+        return true;
+    }
+
+    // 2. BENARKAN gambar dari pangkalan data Supabase
+    try {
+        const parsed = new URL(cleanUrl);
+        return (
+            parsed.protocol === 'https:' &&
+            parsed.origin === 'https://twbmjojqyhmjsoywiqrs.supabase.co' &&
+            parsed.pathname.startsWith('/storage/v1/object/public/')
+        );
+    } catch {
+        return false; 
+    }
+}
+
 // --- FUNGSI GALERI GAMBAR & ZOOM KAWALAN SENTUH ---
 let currentGalleryImages = [];
 let currentGalleryIndex = 0;
@@ -1735,11 +1758,23 @@ function viewReceipt(urls) {
         return;
     }
 
-    currentGalleryImages = urls.split(',').map(url => url.trim()).filter(url => url !== "");
+    const receiptUrls = urls
+        .split(',')
+        .map(url => url.trim())
+        .filter(url => isValidReceiptUrl(url));
+
+    if (receiptUrls.length === 0) {
+        console.warn('Amaran: Tiada URL gambar yang sah.');
+        showErrorModal(
+            'Pautan Tidak Sah',
+            'Gambar tidak dapat dibuka kerana pautan tidak sah atau tidak selamat.'
+        );
+        return;
+    }
+
+    currentGalleryImages = receiptUrls;
     currentGalleryIndex = 0;
     
-    if (currentGalleryImages.length === 0) return;
-
     updateGalleryView();
     
     lockScroll();
