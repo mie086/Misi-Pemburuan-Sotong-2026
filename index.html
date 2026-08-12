@@ -120,7 +120,7 @@
                     </ul>
 
                     <div class="space-y-4 mt-2 text-justify">
-                        <p>Trip sebelum ini didatangi banyak cabaran, ditambah pula dengan ujian mabuk laut. 🦑 😅</p>
+                        <p>Trip sebelum ini didatangi banyak cabaran, ditambah ***** dengan ujian mabuk laut. 🦑 😅</p>
                         <p>In Shaa Allah, trip kali ini lebih baik dan dipermudahkan untuk mencapai <strong>target 100 kg sotong</strong>. 🦑 🎯</p>
                         <p>Yang penting, bukan sekadar mengejar hasil tangkapan tetapi dapat <strong>luangkan masa bersama, mengeratkan silaturahim dan menikmati pengalaman mencandat sotong</strong>. 🦑 🤝</p>
                     </div>
@@ -142,11 +142,22 @@
                 </div>
 
                 <div class="bg-white pt-4 pb-0.5 px-4 border-b border-gray-100">
-                    <div class="flex justify-between items-start mb-3">
+                    <div class="flex justify-between items-end mb-3">
+                        
+                        <!-- Bahagian Kiri: Terkumpul -->
                         <div>
                             <p class="text-[10px] text-gray-500 uppercase font-bold">Terkumpul :</p>
                             <h3 class="text-2xl font-bold text-emerald-600 leading-none mt-1" id="tableSummaryCollected">RM 0</h3>
                         </div>
+
+                        <!-- Bahagian Tengah: Butang Bajet -->
+                        <div class="pb-0.5">
+                            <button onclick="openBudgetModal()" class="text-[10px] text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-100 px-3 py-1.5 rounded-full font-bold inline-flex items-center gap-1.5 transition-transform hover:scale-105 shadow-sm">
+                                <i class="fa-solid fa-file-invoice-dollar"></i> Bajet Trip
+                            </button>
+                        </div>
+
+                        <!-- Bahagian Kanan: Target -->
                         <div class="text-right">
                             <p class="text-[10px] text-gray-400 text-right">Target :</p>
                             <div class="flex items-center justify-end gap-1 mt-1">
@@ -157,6 +168,7 @@
                                 </button>
                             </div>
                         </div>
+                        
                     </div>
                 
                     <div class="w-full">
@@ -927,6 +939,166 @@
             <h3 id="genErrorTitle" class="font-bold text-xl text-slate-800 mb-2">Ralat!</h3>
             <p id="genErrorDesc" class="text-sm text-slate-500 mb-6">Sila masukkan nilai nombor yang sah.</p>
             <button onclick="closeGenericErrorModal()" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-sm font-bold transition shadow-lg">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Modal Bajet Penuh -->
+    <div id="budgetModal" onclick="closeBudgetModal()" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[200] hidden flex items-center justify-center transition-opacity opacity-0">
+        <div onclick="event.stopPropagation()" class="bg-white rounded-2xl p-6 w-[95%] max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 relative max-h-[90vh] overflow-y-auto">
+            
+            <button onclick="closeBudgetModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <div class="flex items-center justify-between mb-6 mt-2 pr-6">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    🦑 Anggaran Bajet
+                </h3>
+                <!-- Butang Kemaskini khusus untuk Admin -->
+                <button id="btnEditBudget" onclick="openEditBudgetModal()" class="hidden text-[10px] bg-blue-50 text-blue-600 border border-blue-200 hover:bg-blue-100 px-2 py-1 rounded-lg font-bold transition items-center gap-1">
+                    <i class="fa-solid fa-pen-to-square"></i> Kemaskini
+                </button>
+            </div>
+
+            <!-- Jadual 1: Kutipan Peserta -->
+            <div class="mb-6">
+                <h4 class="font-bold text-sm text-gray-800 mb-2">1. Kutipan Pemburu</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="border-b-2 border-gray-100 text-gray-600">
+                            <tr>
+                                <th class="pb-2 font-medium">Kategori</th>
+                                <th class="pb-2 font-medium text-center">Bilangan</th>
+                                <th class="pb-2 font-medium text-center">Bayaran seorang</th>
+                                <th class="pb-2 font-medium text-right">Jumlah</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-gray-700">
+                            <tr>
+                                <td class="py-3">Owner Kereta</td>
+                                <td class="py-3 text-center">3 orang</td>
+                                <td class="py-3 text-center">RM250</td>
+                                <td class="py-3 text-right">RM750</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3">Pemburu</td>
+                                <td class="py-3 text-center">9 orang</td>
+                                <td class="py-3 text-center">RM450</td>
+                                <td class="py-3 text-right">RM4,050</td>
+                            </tr>
+                            <tr class="font-bold bg-gray-50/50">
+                                <td class="py-3">Jumlah</td>
+                                <td class="py-3 text-center">12 orang</td>
+                                <td class="py-3 text-center"></td>
+                                <td class="py-3 text-right text-emerald-600">RM4,800</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Jadual 2: Kos Trip -->
+            <div>
+                <h4 class="font-bold text-sm text-gray-800 mb-2">2. Anggaran Kos Trip</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="border-b-2 border-gray-100 text-gray-600">
+                            <tr>
+                                <th class="pb-2 font-medium">Perkara</th>
+                                <th class="pb-2 font-medium text-right">Kos</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-gray-700">
+                            <tr>
+                                <td class="py-3">Bot</td>
+                                <td class="py-3 text-right">RM2,700</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3">Homestay</td>
+                                <td class="py-3 text-right">RM520</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3">Transport</td>
+                                <td class="py-3 text-right">RM1,200</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3">Lain-lain</td>
+                                <td class="py-3 text-right">RM380</td>
+                            </tr>
+                            <tr class="font-bold bg-gray-50/50">
+                                <td class="py-3">Jumlah kos</td>
+                                <td class="py-3 text-right text-red-500">RM4,800</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal Admin: Kemaskini Bajet -->
+    <div id="editBudgetModal" onclick="closeEditBudgetModal()" class="fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-[250] hidden flex items-center justify-center transition-opacity opacity-0">
+        <div onclick="event.stopPropagation()" class="bg-white rounded-2xl p-6 w-[95%] max-w-md shadow-2xl transform scale-95 transition-transform duration-300 relative max-h-[95vh] overflow-y-auto">
+            
+            <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-calculator text-blue-500"></i> Tetapan Bajet
+            </h3>
+
+            <div class="space-y-4">
+                <!-- Seksyen Peserta -->
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                    <p class="text-[10px] font-bold text-blue-800 uppercase mb-2">1. Tetapan Peserta</p>
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div>
+                            <label class="block text-[10px] text-gray-600 mb-1">Bil. Owner</label>
+                            <input type="number" id="inputOwnerQty" class="w-full p-2 text-xs rounded border outline-none focus:border-blue-500" placeholder="Cth: 3">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-600 mb-1">Bayaran Owner (RM)</label>
+                            <input type="number" id="inputOwnerPrice" class="w-full p-2 text-xs rounded border outline-none focus:border-blue-500" placeholder="Cth: 250">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-gray-600 mb-1">Bil. Angler Biasa</label>
+                            <input type="number" id="inputAnglerQty" class="w-full p-2 text-xs rounded border outline-none focus:border-blue-500" placeholder="Cth: 9">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-600 mb-1">Bayaran Angler (RM)</label>
+                            <input type="number" id="inputAnglerPrice" class="w-full p-2 text-xs rounded border outline-none focus:border-blue-500" placeholder="Cth: 450">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seksyen Kos -->
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-100">
+                    <p class="text-[10px] font-bold text-amber-800 uppercase mb-2">2. Tetapan Kos Trip (RM)</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-gray-600 mb-1">Sewa Bot</label>
+                            <input type="number" id="inputKosBot" class="w-full p-2 text-xs rounded border outline-none focus:border-amber-500" placeholder="Cth: 2700">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-600 mb-1">Homestay</label>
+                            <input type="number" id="inputKosHomestay" class="w-full p-2 text-xs rounded border outline-none focus:border-amber-500" placeholder="Cth: 520">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-600 mb-1">Pengangkutan (Transport)</label>
+                            <input type="number" id="inputKosTransport" class="w-full p-2 text-xs rounded border outline-none focus:border-amber-500" placeholder="Cth: 1200">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-600 mb-1">Lain-lain</label>
+                            <input type="number" id="inputKosLain" class="w-full p-2 text-xs rounded border outline-none focus:border-amber-500" placeholder="Cth: 380">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button type="button" onclick="closeEditBudgetModal()" class="w-1/3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition">Batal</button>
+                    <button type="button" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold transition shadow-lg">Simpan Bajet</button>
+                </div>
+            </div>
         </div>
     </div>
 
