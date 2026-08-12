@@ -328,21 +328,55 @@
     </div> 
 
     <!-- Modal Kalendar -->
-    <div id="calendarModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center transition-opacity opacity-0">
-        <div class="bg-white rounded-2xl p-6 w-[95%] max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 relative" id="calendarModalContent">
+    <div id="calendarModal" onclick="closeCalendarModal()" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[200] hidden flex items-center justify-center transition-opacity opacity-0">
+        <div id="calendarModalContent" onclick="event.stopPropagation()" class="bg-white rounded-3xl p-6 w-[90%] max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 relative">
+            
+            <button onclick="closeCalendarModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-50 text-blue-500 rounded-full mb-3">
+                    <i class="fa-regular fa-calendar-days text-xl"></i>
+                </div>
+                <h3 class="font-bold text-lg text-slate-800">Kiraan Detik</h3>
+                <p id="modalCountdown" class="text-blue-600 font-bold text-sm mt-1">Memuatkan...</p>
+            </div>
+
             <div class="flex justify-between items-center mb-4">
-                <button onclick="changeMonth(-1)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"><i class="fa-solid fa-chevron-left"></i></button>
-                <div class="text-center"><h3 id="calTitle" class="text-lg font-bold text-slate-800">Loading...</h3><p class="text-[10px] text-slate-500">Misi Pemburuan Sotong 2027</p></div>
-                <button onclick="changeMonth(1)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500"><i class="fa-solid fa-chevron-right"></i></button>
+                <button onclick="changeMonth(-1)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <h4 id="calTitle" class="font-bold text-gray-700 text-sm"></h4>
+                <button onclick="changeMonth(1)" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 transition">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </button>
             </div>
-            <button onclick="closeCalendarModal()" class="absolute top-4 right-4 text-gray-300 hover:text-gray-500"><i class="fa-solid fa-xmark"></i></button>
-            <div class="bg-slate-50 rounded-xl p-3 mb-4 border border-slate-100 min-h-[280px]">
-                <div class="grid grid-cols-7 text-center mb-2 border-b border-gray-200 pb-2"><span class="text-[10px] font-bold text-red-500">Ahd</span><span class="text-[10px] font-bold text-slate-500">Isn</span><span class="text-[10px] font-bold text-slate-500">Sel</span><span class="text-[10px] font-bold text-slate-500">Rab</span><span class="text-[10px] font-bold text-slate-500">Kha</span><span class="text-[10px] font-bold text-slate-500">Jum</span><span class="text-[10px] font-bold text-red-600">Sab</span></div>
-                <div id="calGrid" class="grid grid-cols-7 text-center gap-y-2 text-xs text-slate-600 font-medium"></div>
-                <div class="mt-4 flex justify-center gap-3 border-t border-gray-200 pt-3"><div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-[10px] text-gray-500">Hari Ini</span></div><div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-500"></div><span class="text-[10px] text-gray-500">Memburu Sotong!</span></div></div>
+
+            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400 mb-2">
+                <div>Aha</div>
+                <div>Isn</div>
+                <div>Sel</div>
+                <div>Rab</div>
+                <div>Kha</div>
+                <div>Jum</div>
+                <div>Sab</div>
             </div>
-            <div class="bg-blue-50 rounded-xl p-3 text-center mb-3 border border-blue-100"><span class="text-[10px] text-gray-500 block uppercase tracking-wide">Menuju 5 Jun 2027</span><span id="modalCountdown" class="font-bold text-blue-600 text-sm">...</span></div>
-            <button onclick="closeCalendarModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition shadow-md flex items-center justify-center gap-2">Tutup Kalendar</button>
+            
+            <div id="calGrid" class="grid grid-cols-7 gap-y-2 text-sm">
+                <!-- Data akan dimasukkan melalui JavaScript -->
+            </div>
+
+            <!-- Petunjuk / Butang Pintasan (Legend) -->
+            <div class="mt-6 pt-4 border-t border-gray-100 flex justify-center gap-6 text-xs text-gray-500">
+                <button type="button" onclick="jumpToToday()" class="flex items-center gap-1.5 hover:text-blue-600 transition transform hover:scale-105">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Hari Ini
+                </button>
+                <button type="button" onclick="jumpToTripDate()" class="flex items-center gap-1.5 hover:text-emerald-600 transition transform hover:scale-105">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Memburu Sotong!
+                </button>
+            </div>
+            
         </div>
     </div>
 
