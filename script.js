@@ -282,6 +282,7 @@ function updateAdminUI() {
     const btnWarning = document.getElementById('btnToggleWarning');
     const btnChkWarning = document.getElementById('btnToggleChecklistWarning');
     const btnEditTarget = document.getElementById('btnEditTarget');
+    const btnEditBudget = document.getElementById('btnEditBudget');
 
     if (isAdmin) {
         if(dot) dot.classList.remove('hidden'); 
@@ -290,6 +291,10 @@ function updateAdminUI() {
         if(btnWarning) btnWarning.classList.remove('hidden');
         if(btnChkWarning) btnChkWarning.classList.remove('hidden');
         if(btnEditTarget) btnEditTarget.classList.remove('hidden');
+        if(btnEditBudget) {
+            btnEditBudget.classList.remove('hidden');
+            btnEditBudget.classList.add('flex');
+        }
     } else {
         if(dot) dot.classList.add('hidden'); 
         if(fab) fab.classList.add('hidden'); 
@@ -297,6 +302,10 @@ function updateAdminUI() {
         if(btnWarning) btnWarning.classList.add('hidden');
         if(btnChkWarning) btnChkWarning.classList.add('hidden');
         if(btnEditTarget) btnEditTarget.classList.add('hidden');
+        if(btnEditBudget) {
+            btnEditBudget.classList.add('hidden');
+            btnEditBudget.classList.remove('flex');
+        }
     }
 
     renderTable();     
@@ -1907,6 +1916,61 @@ async function submitNewTarget() {
             showSuccessModal("Berjaya!", "Target keseluruhan telah dikemaskini.");
         }
     }, 300);
+}
+
+// --- FUNGSI MODAL BAJET ---
+function openBudgetModal() {
+    const modal = document.getElementById('budgetModal');
+    if (!modal) return;
+    const content = modal.querySelector('div');
+    
+    lockScroll();
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+    }, 10);
+}
+
+function closeBudgetModal() {
+    const modal = document.getElementById('budgetModal');
+    if (!modal) return;
+    const content = modal.querySelector('div');
+    
+    unlockScroll();
+    modal.classList.add('opacity-0');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); }, 300);
+}
+
+function openEditBudgetModal() {
+    closeBudgetModal(); 
+    
+    const modal = document.getElementById('editBudgetModal');
+    if (!modal) return;
+    const content = modal.querySelector('div');
+    
+    lockScroll();
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+    }, 300); 
+}
+
+function closeEditBudgetModal() {
+    const modal = document.getElementById('editBudgetModal');
+    if (!modal) return;
+    const content = modal.querySelector('div');
+    
+    unlockScroll();
+    modal.classList.add('opacity-0');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); }, 300);
 }
 
 // --- FUNGSI KAWALAN MODAL RALAT (ERROR) ---
