@@ -411,6 +411,22 @@ function renderCalendar() {
     }
 }
 
+// --- FUNGSI PINTASAN KALENDAR ---
+
+// 1. Fungsi lompat ke tarikh hari ini
+function jumpToToday() {
+    currentCalDate = new Date(); // Reset ke tarikh semasa
+    renderCalendar();
+}
+
+// 2. Fungsi lompat ke tarikh trip candat sotong
+function jumpToTripDate() {
+    // Nota: Dalam JavaScript, bulan bermula dengan 0. (Jadi 5 = Jun)
+    // Format: new Date(Tahun, Bulan, Hari)
+    currentCalDate = new Date(2027, 5, 5); // Ditetapkan pada 5 Jun 2027
+    renderCalendar();
+}
+
 function triggerSquidSwim() {
     if (document.querySelectorAll('.swimming-squid').length >= 5) return;
 
